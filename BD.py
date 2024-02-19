@@ -2,98 +2,98 @@ import sqlite3 as sl
 
 con = sl.connect('warehouseBD.db', check_same_thread=False)
 
-with con:
-    con.execute("""
-            CREATE TABLE IF NOT EXISTS access (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                access_level INTEGER
-            );
-        """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS staff (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            first_name VARCHAR(20),
-            last_name VARCHAR(20),
-            surname VARCHAR(20),
-            login VARCHAR(20),
-            password VARCHAR(20),
-            access_id INTEGER,
-            FOREIGN KEY (access_id) REFERENCES access (id)
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            first_name VARCHAR(20),
-            last_name VARCHAR(20),
-            surname VARCHAR(20),
-            age INTEGER,
-            address VARCHAR(30),
-            email VARCHAR(30)
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            total_price INTEGER,
-            order_date INTEGER,
-            delivery_date INTEGER,
-            user_id INTEGER,
-            FOREIGN KEY (user_id) REFERENCES users (id)                  
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS warehouse (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            warehouse_name VARCHAR(30),
-            address VARCHAR(30),
-            text_location VARCHAR(50),
-            latitude DECIMAL,
-            longitude DECIMAL                 
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            product_name VARCHAR(30),
-            category VARCHAR(30),
-            characteristic TEXT,
-            vendor_code VARCHAR(30),
-            price BIGINT,
-            image_path VARCHAR(50),
-            quantity_type INTEGER   
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS orderDetail (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            order_number INTEGER,
-            quantity INTEGER,
-            product_id INTEGER,                  
-            FOREIGN KEY (order_number) REFERENCES orders (id),
-            FOREIGN KEY (product_id) REFERENCES product (id)                  
-        );
-    """)
-
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS warehouseProduct (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            warehouse_id INTEGER,
-            product_id INTEGER,
-            quantity INTEGER,
-            delivery_date INTEGER,
-            expiration_date INTEGER,                 
-            FOREIGN KEY (warehouse_id) REFERENCES orders (id),
-            FOREIGN KEY (product_id) REFERENCES product (id),
-            FOREIGN KEY (quantity) REFERENCES product (quantity_type)                  
-        );
-    """)
+# with con:
+#     con.execute("""
+#             CREATE TABLE IF NOT EXISTS access (
+#                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#                 access_level INTEGER
+#             );
+#         """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS staff (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             first_name VARCHAR(20),
+#             last_name VARCHAR(20),
+#             surname VARCHAR(20),
+#             login VARCHAR(20),
+#             password VARCHAR(20),
+#             access_id INTEGER,
+#             FOREIGN KEY (access_id) REFERENCES access (id)
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS users (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             first_name VARCHAR(20),
+#             last_name VARCHAR(20),
+#             surname VARCHAR(20),
+#             age INTEGER,
+#             address VARCHAR(30),
+#             email VARCHAR(30)
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS orders (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             total_price INTEGER,
+#             order_date INTEGER,
+#             delivery_date INTEGER,
+#             user_id INTEGER,
+#             FOREIGN KEY (user_id) REFERENCES users (id)
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS warehouse (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             warehouse_name VARCHAR(30),
+#             address VARCHAR(30),
+#             text_location VARCHAR(50),
+#             latitude DECIMAL,
+#             longitude DECIMAL
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS products (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             product_name VARCHAR(30),
+#             category VARCHAR(30),
+#             characteristic TEXT,
+#             vendor_code VARCHAR(30),
+#             price BIGINT,
+#             image_path VARCHAR(50),
+#             quantity_type INTEGER
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS orderDetail (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             order_number INTEGER,
+#             quantity INTEGER,
+#             product_id INTEGER,
+#             FOREIGN KEY (order_number) REFERENCES orders (id),
+#             FOREIGN KEY (product_id) REFERENCES product (id)
+#         );
+#     """)
+#
+#     con.execute("""
+#         CREATE TABLE IF NOT EXISTS warehouseProduct (
+#             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#             warehouse_id INTEGER,
+#             product_id INTEGER,
+#             quantity INTEGER,
+#             delivery_date INTEGER,
+#             expiration_date INTEGER,
+#             FOREIGN KEY (warehouse_id) REFERENCES orders (id),
+#             FOREIGN KEY (product_id) REFERENCES product (id),
+#             FOREIGN KEY (quantity) REFERENCES product (quantity_type)
+#         );
+#     """)
 
 class MethosdBD:
     def get_table(self,table:str):
@@ -180,4 +180,10 @@ class MethosdBD:
             for i in data:
                 data1.append(i[0])
             return data1
+
+    def get_access_level(self,login:str,password:str):
+        s=f"SELECT access_level FROM access INNER JOIN staff ON access.id=staff.access_id WHERE staff.password='{password}' AND staff.login='{login}'"
+        with con:
+            data = con.execute(s)
+            return data.fetchall()[0][0]
 workBD=MethosdBD()
