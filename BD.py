@@ -49,6 +49,7 @@ with con:
     con.execute("""
         CREATE TABLE IF NOT EXISTS warehouse (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            warehouse_name VARCHAR(30),
             address VARCHAR(30),
             text_location VARCHAR(50),
             latitude DECIMAL,
@@ -166,5 +167,17 @@ class MethosdBD:
         with con:
             con.execute(s)
 
-
+    def get_warehouse_name(self):
+        """
+        Получение всех названий складов
+        :return: список названий складов
+        """
+        s="SELECT warehouse_name FROM warehouse"
+        with con:
+            data = con.execute(s)
+            data=data.fetchall()
+            data1=[]
+            for i in data:
+                data1.append(i[0])
+            return data1
 workBD=MethosdBD()
