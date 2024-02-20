@@ -198,12 +198,12 @@ class MethosdBD:
 
     def get_products_from_warehouse(self,warehouse_name:str):
         """
-        Получение данных продуктов на складе для таблицы продуктов (id, product_name, category, vendor_code, quantity, delivery_date,expiration_date)
+        Получение данных продуктов на складе для таблицы продуктов (id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date)
         :param warehouse_name: название склада
         :return: возвращает список кортежей
         """
         s=f"""
-            SELECT products.id, product_name, category, vendor_code, quantity, delivery_date,expiration_date FROM products
+            SELECT products.id, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
             INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             WHERE warehouse.warehouse_name='{warehouse_name}'
@@ -222,4 +222,28 @@ class MethosdBD:
         with con:
             data=con.execute(s)
             return data.fetchall()[0]
+
+    def get_all_users(self):
+        """
+        Получение информации о всех клиентах для таблицы клиентов
+        :return: список кортежей
+        """
+        s="SELECT first_name, last_name, surname, address FROM users"
+        with con:
+            data=con.execute(s)
+            return data.fetchall()
+
+    def get_user_cart(self,user_id:int):
+        """
+        Получение всех всех данных клиента для карты клиента
+        :param user_id: id пользователя
+        :return: кортеж с данными
+        """
+        s=f"SELECT * FROM users WHERE id={user_id}"
+        with con:
+            data=con.execute(s)
+            return data.fetchall()[0]
+
+    # def get_user_orders(self):
+
 workBD=MethosdBD()
