@@ -212,4 +212,14 @@ class MethosdBD:
             data = con.execute(s)
             return data.fetchall()
 
+    def get_product_cart(self,product_id:int):
+        """
+        Получение данных товара для карты товара
+        :param product_id: id товара
+        :return: возвращает кортеж с данными товара из таблицы products
+        """
+        s=f"SELECT * FROM products WHERE id={product_id}"
+        with con:
+            data=con.execute(s)
+            return data.fetchall()[0]
 workBD=MethosdBD()
