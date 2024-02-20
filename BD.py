@@ -66,8 +66,7 @@ with con:
             characteristic TEXT,
             vendor_code VARCHAR(30),
             price DECIMAL,
-            image_path VARCHAR(50),
-            quantity_type INTEGER
+            image_path VARCHAR(50)
         );
     """)
 
@@ -91,8 +90,7 @@ with con:
             delivery_date INTEGER,
             expiration_date INTEGER,
             FOREIGN KEY (warehouse_id) REFERENCES warehouse (id),
-            FOREIGN KEY (product_id) REFERENCES products (id),
-            FOREIGN KEY (quantity) REFERENCES products (quantity_type)
+            FOREIGN KEY (product_id) REFERENCES products (id)
         );
     """)
 
@@ -183,8 +181,35 @@ class MethosdBD:
             return data1
 
     def get_access_level(self,login:str,password:str):
-        s=f"SELECT access_level FROM access INNER JOIN staff ON access.id=staff.access_id WHERE staff.password='{password}' AND staff.login='{login}'"
+        """
+        Получения уровня доступа сотрудника по логину и паролю
+        :param login: логин
+        :param password: пароль
+        :return: возвращает число 1-3
+        """
+        s=f"""
+            SELECT access_level FROM access 
+            INNER JOIN staff ON access.id=staff.access_id 
+            WHERE staff.password='{password}' AND staff.login='{login}'
+        """
         with con:
             data = con.execute(s)
             return data.fetchall()[0][0]
+
+    def get_products_from_warehouse(self,warehouse_name:str):
+        """
+        Получение данных продуктов на складе для таблицы продуктов (id, product_name, category, vendor_code, quantity, delivery_date,expiration_date)
+        :param warehouse_name: название склада
+        :return: возвращает список кортежей
+        """
+        s=f"""
+            SELECT products.id, product_name, category, vendor_code, quantity, delivery_date,expiration_date FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
+            INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
+            WHERE warehouse.warehouse_name='{warehouse_name}'
+            """
+        with con:
+            data = con.execute(s)
+            return data.fetchall()
+
 workBD=MethosdBD()
