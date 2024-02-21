@@ -246,4 +246,10 @@ class MethosdBD:
 
     # def get_user_orders(self):
 
+    def get_warehouses_info(self):
+        s="SELECT warehouse_name, address, text_location, latitude,longitude FROM warehouse"
+        with con:
+            data=con.execute(s)
+            return data.fetchall()
+
 workBD=MethosdBD()
