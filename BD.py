@@ -77,7 +77,7 @@ with con:
             quantity INTEGER,
             product_id INTEGER,
             FOREIGN KEY (order_number) REFERENCES orders (id),
-            FOREIGN KEY (product_id) REFERENCES product (id)
+            FOREIGN KEY (product_id) REFERENCES products (id)
         );
     """)
 
@@ -244,9 +244,14 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()[0]
 
-    # def get_user_orders(self):
+    # def get_user_orders(self,user_id:str):
+
 
     def get_warehouses_info(self):
+        """
+        Получение информаци о складах
+        :return: список кортежей
+        """
         s="SELECT warehouse_name, address, text_location, latitude,longitude FROM warehouse"
         with con:
             data=con.execute(s)
