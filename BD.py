@@ -246,9 +246,9 @@ class MethosdBD:
 
     def get_user_orders(self,user_id:int):
         """
-        не готов
-        :param user_id:
-        :return:
+        Получение данных о заказах клиента
+        :param user_id: id клиента
+        :return: список списков с даннами заказов(номер заказа, стоимость заказа, дата заказа, содержимое заказа(название и колличество))
         """
         s=f"""
             SELECT id,total_price,order_date FROM orders
@@ -268,7 +268,6 @@ class MethosdBD:
             data1=data1.fetchall()
             arr=[]
             arr1=[]
-            arr2=[]
             for i in range(len(data)):
                 for j in range(len(data[i])):
                     arr.append(data[i][j])
@@ -277,17 +276,26 @@ class MethosdBD:
 
             num=data1[0][0]
             str=""
-            # str += f"{data1[i][1]}-{data1[i][2]}шт,"
             arr=[]
             print(data1)
             for i in range(len(data1)):
-                if data1[i][0]==num:
-                    print(num)
-                elif data1[i][0]==num:
+                if data1[i][0]==num and i==len(data1)-1:
+                    str+=f"{data1[i][1]}-{data1[i][2]}шт,"
+                    arr.append(str)
+                elif data1[i][0]!=num and i==len(data1)-1:
+                    arr.append(str)
+                    arr.append(f"{data1[i][1]}-{data1[i][2]}шт,")
+                elif data1[i][0]!=num:
+                    arr.append(str)
+                    str=f"{data1[i][1]}-{data1[i][2]}шт,"
                     num=data1[i][0]
-                    print(num)
+                elif data1[i][0]==num:
+                    str += f"{data1[i][1]}-{data1[i][2]}шт,"
 
-            return arr
+            for i in range(len(arr1)):
+                arr1[i].append(arr[i])
+
+            return arr1
 
 
     def get_warehouses_info(self):
