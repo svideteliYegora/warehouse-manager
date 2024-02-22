@@ -308,7 +308,7 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()
 
-    def search_by_param(warehouse_name, **param) -> list:
+    def search_by_param(self,warehouse_name, **param) -> list:
         """
         Метод для поиска товаров по заданному параметру.
 
@@ -329,5 +329,9 @@ class MethosdBD:
                 """
         with con:
             return con.execute(query).fetchall()
+
+    def addupdate_query(self, field, value, table_name, id):
+        query = f"UPDATE {table_name} SET {field} = {value} WHERE id = {id}"
+        self.queries_list.append(query)
 
 workBD=MethosdBD()
