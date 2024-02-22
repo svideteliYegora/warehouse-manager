@@ -2,8 +2,6 @@ from BD import workBD
 from PyQt5 import QtCore, QtGui, QtWidgets
 from dialog_product_cart import Ui_ProductCart
 
-from ttt import search_by_param
-
 
 class Ui_Dialog(object):
     def __init__(self):
@@ -103,33 +101,7 @@ class Ui_Dialog(object):
         self.tableWidget_2.setGeometry(QtCore.QRect(10, 50, 471, 281))
         self.tableWidget_2.setObjectName("tableWidget_2")
         self.tableWidget_2.setColumnCount(4)
-        self.tableWidget_2.setRowCount(13)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(3, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(4, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(5, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(6, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(7, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(8, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(9, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(10, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(11, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget_2.setVerticalHeaderItem(12, item)
+        self.tableWidget_2.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget_2.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -191,8 +163,10 @@ class Ui_Dialog(object):
         self.tabWidget.addTab(self.tab_3, "")
 
         self.pushButton.clicked.connect(self.download)
+        self.pushButton_2.clicked.connect(self.download)
         self.tableWidget.cellDoubleClicked.connect(self.double_click)
         self.pushButton_4.clicked.connect(self.search_by)
+        self.pushButton_3.clicked.connect(lambda: self.dialog_close(Dialog))
 
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
@@ -238,32 +212,7 @@ class Ui_Dialog(object):
         self.label_3.setText(_translate("Dialog", "Поиск:"))
         self.pushButton_4.setText(_translate("Dialog", "Найти"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Dialog", "Склад"))
-        item = self.tableWidget_2.verticalHeaderItem(0)
-        item.setText(_translate("Dialog", "New Row"))
-        item = self.tableWidget_2.verticalHeaderItem(1)
-        item.setText(_translate("Dialog", "1"))
-        item = self.tableWidget_2.verticalHeaderItem(2)
-        item.setText(_translate("Dialog", "2"))
-        item = self.tableWidget_2.verticalHeaderItem(3)
-        item.setText(_translate("Dialog", "3"))
-        item = self.tableWidget_2.verticalHeaderItem(4)
-        item.setText(_translate("Dialog", "4"))
-        item = self.tableWidget_2.verticalHeaderItem(5)
-        item.setText(_translate("Dialog", "5"))
-        item = self.tableWidget_2.verticalHeaderItem(6)
-        item.setText(_translate("Dialog", "6"))
-        item = self.tableWidget_2.verticalHeaderItem(7)
-        item.setText(_translate("Dialog", "7"))
-        item = self.tableWidget_2.verticalHeaderItem(8)
-        item.setText(_translate("Dialog", "8"))
-        item = self.tableWidget_2.verticalHeaderItem(9)
-        item.setText(_translate("Dialog", "10"))
-        item = self.tableWidget_2.verticalHeaderItem(10)
-        item.setText(_translate("Dialog", "0"))
-        item = self.tableWidget_2.verticalHeaderItem(11)
-        item.setText(_translate("Dialog", "11"))
-        item = self.tableWidget_2.verticalHeaderItem(12)
-        item.setText(_translate("Dialog", "13"))
+
         item = self.tableWidget_2.horizontalHeaderItem(0)
         item.setText(_translate("Dialog", "Фамилия"))
         item = self.tableWidget_2.horizontalHeaderItem(1)
@@ -283,7 +232,12 @@ class Ui_Dialog(object):
         self.pushButton_8.setText(_translate("Dialog", "Выход"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Dialog", "Клиенты"))
 
-    def download(self):
+    def download(self) -> None:
+        """
+        Метод для заполнения таблицы.
+
+        :return: None
+        """
         if self.comboBox.currentData() is not None:
             # получаем список с данными для заполнения таблицы
             data = workBD.get_products_from_warehouse(self.comboBox.currentText())
@@ -292,7 +246,7 @@ class Ui_Dialog(object):
             # заполняем таблицу
             self.table_filling(data)
 
-    def double_click(self):
+    def double_click(self) -> None:
         # получаем id продукта из названия вертикального заголовка
         current_row = self.tableWidget.currentRow()
         product_id = int(self.tableWidget.verticalHeaderItem(current_row).text())
@@ -305,7 +259,12 @@ class Ui_Dialog(object):
         Dialog.show()
         Dialog.exec_()
 
-    def search_by(self):
+    def search_by(self) -> None:
+        """
+        Метод реализующий поиск в таблице.
+
+        :return: None
+        """
         if self.comboBox.currentData():
             crit_dict = {
                 "Категория": "category",
@@ -317,7 +276,7 @@ class Ui_Dialog(object):
             crit = crit_dict[self.comboBox_2.currentText()]
             value = self.lineEdit.text()
             # выполняем запрос
-            data = search_by_param(warehouse, **{crit: value})
+            data = workBD.search_by_param(warehouse, **{crit: value})
             # полученный результат используем для заполнения таблицы
             if data:
                 self.table_filling(data)
@@ -328,14 +287,23 @@ class Ui_Dialog(object):
                 while self.tableWidget.rowCount() > 0:
                     self.tableWidget.removeRow(0)
 
-    def table_filling(self, data: list):
+    def show_clients(self) -> None:
+        """
+        Метод для заполнения таблицы данными о клиентах.
+
+        :return: None
+        """
+        # получаем информацию о клиентах из БД
+        data = workBD.get_all_users()
+
+
+    def table_filling(self, data: list) -> None:
         """
         Метод для заполнения таблицы tableWidget.
 
         :param data: Список кортежей.
         :return: None.
         """
-
         # устанавливаем количество строк в таблице равное длине полученного списка
         self.tableWidget.setRowCount(len(data))
 
@@ -345,20 +313,13 @@ class Ui_Dialog(object):
             self.tableWidget.setVerticalHeaderItem(row, item)
 
             # заполняем значениями все столбцы
-            item = QtWidgets.QTableWidgetItem(itm[1])
-            self.tableWidget.setItem(row, 0, item)
-            item = QtWidgets.QTableWidgetItem(itm[2])
-            self.tableWidget.setItem(row, 1, item)
-            item = QtWidgets.QTableWidgetItem(itm[3])
-            self.tableWidget.setItem(row, 2, item)
-            item = QtWidgets.QTableWidgetItem(str(itm[4]))
-            self.tableWidget.setItem(row, 3, item)
-            item = QtWidgets.QTableWidgetItem(str(itm[5]))
-            self.tableWidget.setItem(row, 4, item)
-            item = QtWidgets.QTableWidgetItem(str(itm[6]))
-            self.tableWidget.setItem(row, 5, item)
-            item = QtWidgets.QTableWidgetItem(str(itm[7]))
-            self.tableWidget.setItem(row, 6, item)
+            for i in range(1, len(itm)):
+                item = QtWidgets.QTableWidgetItem(itm[i])
+                self.tableWidget.setItem(row, i-1, item)
+
+    @staticmethod
+    def dialog_close(Dialog) -> None:
+        Dialog.close()
 
 
 if __name__ == "__main__":
