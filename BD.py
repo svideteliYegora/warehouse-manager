@@ -244,7 +244,50 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()[0]
 
-    # def get_user_orders(self,user_id:str):
+    def get_user_orders(self,user_id:int):
+        """
+        не готов
+        :param user_id:
+        :return:
+        """
+        s=f"""
+            SELECT id,total_price,order_date FROM orders
+            """
+
+        s1=f"""
+            SELECT order_number, product_name, quantity FROM products 
+            INNER JOIN orderDetail ON orderDetail.product_id=products.id
+            INNER JOIN orders ON orders.id=orderDetail.order_number
+            INNER JOIN users ON users.id=orders.user_id 
+            WHERE users.id={user_id}
+            """
+        with con:
+            data=con.execute(s)
+            data1=con.execute(s1)
+            data=data.fetchall()
+            data1=data1.fetchall()
+            arr=[]
+            arr1=[]
+            arr2=[]
+            for i in range(len(data)):
+                for j in range(len(data[i])):
+                    arr.append(data[i][j])
+                arr1.append(arr)
+                arr=[]
+
+            num=data1[0][0]
+            str=""
+            # str += f"{data1[i][1]}-{data1[i][2]}шт,"
+            arr=[]
+            print(data1)
+            for i in range(len(data1)):
+                if data1[i][0]==num:
+                    print(num)
+                elif data1[i][0]==num:
+                    num=data1[i][0]
+                    print(num)
+
+            return arr
 
 
     def get_warehouses_info(self):
@@ -256,5 +299,27 @@ class MethosdBD:
         with con:
             data=con.execute(s)
             return data.fetchall()
+
+    def search_by_param(warehouse_name, **param) -> list:
+        """
+        Метод для поиска товаров по заданному параметру.
+
+        :param warehouse_name: Название склада.
+        :param param: Словарь с параметром, где ключ - название поля, значение - значение этого поля.
+        :return: Список кортежей или пустой список.
+        """
+        p = ""
+        for key, value in param.items():
+            p += f"{key}='{value}'"
+        p = "products." + p
+
+        query = f"""
+                SELECT products.id, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+                INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
+                INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
+                WHERE warehouse.warehouse_name='{warehouse_name}' AND {p}
+                """
+        with con:
+            return con.execute(query).fetchall()
 
 workBD=MethosdBD()
