@@ -228,7 +228,7 @@ class MethosdBD:
         Получение информации о всех клиентах для таблицы клиентов
         :return: список кортежей
         """
-        s="SELECT first_name, last_name, surname, address FROM users"
+        s="SELECT id, first_name, last_name, surname, address FROM users"
         with con:
             data=con.execute(s)
             return data.fetchall()
@@ -318,7 +318,7 @@ class MethosdBD:
         """
         p = ""
         for key, value in param.items():
-            p += f"{key}='{value}'"
+            p += f"{key} LIKE='%{value}%'"
         p = "products." + p
 
         query = f"""
