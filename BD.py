@@ -277,7 +277,6 @@ class MethosdBD:
             num=data1[0][0]
             str=""
             arr=[]
-            print(data1)
             for i in range(len(data1)):
                 if data1[i][0]==num and i==len(data1)-1:
                     str+=f"{data1[i][1]}-{data1[i][2]}шт,"
