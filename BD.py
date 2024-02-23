@@ -251,7 +251,7 @@ class MethosdBD:
         :return: список списков с даннами заказов(номер заказа, стоимость заказа, дата заказа, содержимое заказа(название и колличество))
         """
         s=f"""
-            SELECT id,total_price,order_date FROM orders
+            SELECT id,total_price,order_date FROM orders WHERE user_id={user_id}
             """
 
         s1=f"""
@@ -266,6 +266,7 @@ class MethosdBD:
             data1=con.execute(s1)
             data=data.fetchall()
             data1=data1.fetchall()
+
             arr=[]
             arr1=[]
             for i in range(len(data)):
@@ -276,7 +277,7 @@ class MethosdBD:
 
             num=data1[0][0]
             str=""
-            arr=[]
+
             for i in range(len(data1)):
                 if data1[i][0]==num and i==len(data1)-1:
                     str+=f"{data1[i][1]}-{data1[i][2]}шт,"
@@ -292,6 +293,7 @@ class MethosdBD:
                     str += f"{data1[i][1]}-{data1[i][2]}шт,"
 
             for i in range(len(arr1)):
+
                 arr1[i].append(arr[i])
 
             return arr1
