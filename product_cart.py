@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 
 
 class Ui_ProductCart(object):
-    product_id = ''
+    product_id = None
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -32,7 +32,8 @@ class Ui_ProductCart(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        # получаем информацию о товаре
+
+        # получение информацию о товаре
         product: tuple = workBD.get_product_cart(self.product_id)
         name = product[1]
         category = product[2]
@@ -43,7 +44,7 @@ class Ui_ProductCart(object):
         pixmap = QPixmap(img_path)
         self.label_2.setPixmap(pixmap)
 
-        # масштабируем изображение
+        # масштабирование изображения
         self.label_2.setScaledContents(True)
         text = "<b>Название</b>: <i>{}</i><br><br>" \
                "<b>Категория</b>: <i>{}</i><br><br>" \

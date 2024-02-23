@@ -1,6 +1,8 @@
+import PyQt5
 from BD import workBD
 from PyQt5 import QtCore, QtGui, QtWidgets
-from dialog_product_cart import Ui_ProductCart
+from product_cart import Ui_ProductCart
+from user_cart import Ui_UserCart
 
 
 class Ui_Dialog(object):
@@ -104,7 +106,7 @@ class Ui_Dialog(object):
         self.tableWidget_2.setRowCount(0)
         # заполняем таблицу данными о клиентах
         data = workBD.get_all_users()
-        self.table_filling(data, "tableWidget_2")
+        self.table_filling(data, self.tableWidget_2)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget_2.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -167,7 +169,8 @@ class Ui_Dialog(object):
 
         self.pushButton.clicked.connect(self.download)
         self.pushButton_2.clicked.connect(self.download)
-        self.tableWidget.cellDoubleClicked.connect(self.get_product_cart)
+        self.tableWidget.cellDoubleClicked.connect(lambda: self.get_cart(self.tableWidget))
+        self.tableWidget_2.cellDoubleClicked.connect(lambda: self.get_cart(self.tableWidget_2, flag=True))
         self.pushButton_4.clicked.connect(self.search_by)
         self.pushButton_3.clicked.connect(lambda: self.dialog_close(Dialog))
 
@@ -242,30 +245,32 @@ class Ui_Dialog(object):
         :return: None
         """
         if self.comboBox.currentData() is not None:
-            # получаем список с данными для заполнения таблицы
+            # получение списка с данными для заполнения таблицы
             data = workBD.get_products_from_warehouse(self.comboBox.currentText())
-            # устанавливаем количество строк в таблице равное длине полученного списка
+            # установка количества строк в таблице равное длине полученного списка
             self.tableWidget.setRowCount(len(data))
-            # заполняем таблицу
-            self.table_filling(data, "tableWidget")
+            # заполнение таблицы
+            self.table_filling(data, self.tableWidget)
 
-    def get_product_cart(self) -> None:
-        # получаем id продукта из названия вертикального заголовка
-        current_row = self.tableWidget.currentRow()
-        product_id = int(self.tableWidget.verticalHeaderItem(current_row).text())
+    def get_cart(self, table_widget: PyQt5.QtWidgets.QTableWidget, flag=False) -> None:
+        """
+        Получение карты товара или клиента, в зависимости от указанного параметра.
 
-        # создаем экземпляр диалогового окна и передаем полученный product_id
+        :param flag: Булево значение, default=False - создание карточки товара, True - создание карточки пользователя.
+        :param table_widget: Экземпляр класса QTableWidget.
+        :return: None
+        """
+        # получение id из названия вертикального заголовка
+        current_row = table_widget.currentRow()
+        id_ = int(table_widget.verticalHeaderItem(current_row).text())
+
+        # создание экземпляра диалогового окна и передача полученного id
         Dialog = QtWidgets.QDialog()
-        ui_product_cart = Ui_ProductCart()
-        ui_product_cart.product_id = product_id
-        ui_product_cart.setupUi(Dialog)
+        ui_cart = Ui_UserCart() if flag else Ui_ProductCart()
+        setattr(ui_cart, "user_id", id_) if flag else setattr(ui_cart, "product_id", id_)
+        ui_cart.setupUi(Dialog)
         Dialog.show()
         Dialog.exec_()
-
-    def get_user_cart(self) -> None:
-        # получаем id пользователя из названия вертикального заголовка
-        pass
-
 
     def search_by(self) -> None:
         """
@@ -287,7 +292,7 @@ class Ui_Dialog(object):
             data = workBD.search_by_param(warehouse, **{crit: value})
             # полученный результат используем для заполнения таблицы
             if data:
-                self.table_filling(data, "tableWidget")
+                self.table_filling(data, self.tableWidget)
             else:
                 # удаляем содержимое ячеек
                 self.tableWidget.clearContents()
@@ -295,16 +300,15 @@ class Ui_Dialog(object):
                 while self.tableWidget.rowCount() > 0:
                     self.tableWidget.removeRow(0)
 
-    def table_filling(self, data: list, table_name: str) -> None:
+    def table_filling(self, data: list, table_widget: PyQt5.QtWidgets.QTableWidget) -> None:
         """
         Метод для заполнения таблицы tableWidget.
 
         :param data: Список кортежей.
-        :param table_name: Название экземпляра представляющего tableWidget.
+        :param table_widget: экземпляр класса QTableWidget.
         :return: None.
         """
-        # устанавливаем количество строк в таблице равное длине полученного списка
-        table_widget = getattr(self, table_name)
+        # установка количества строк в таблице равное длине полученного списка
         table_widget.setRowCount(len(data))
 
         for row, itm in enumerate(data):
@@ -312,7 +316,7 @@ class Ui_Dialog(object):
             item = QtWidgets.QTableWidgetItem(str(itm[0]))
             table_widget.setVerticalHeaderItem(row, item)
 
-            # заполняем значениями все столбцы
+            # заполнение значениями всех столбцов
             for i in range(1, len(itm)):
                 item = QtWidgets.QTableWidgetItem(str(itm[i]))
                 table_widget.setItem(row, i-1, item)
