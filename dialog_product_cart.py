@@ -56,8 +56,8 @@ class Ui_ProductCart(object):
         self.textEdit.setText(text)
         self.pushButton.setText(_translate("Dialog", "Выход"))
 
-
-    def dialog_close(self, Dialog):
+    @staticmethod
+    def dialog_close(Dialog):
         Dialog.close()
 
 
