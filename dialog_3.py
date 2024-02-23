@@ -102,6 +102,9 @@ class Ui_Dialog(object):
         self.tableWidget_2.setObjectName("tableWidget_2")
         self.tableWidget_2.setColumnCount(4)
         self.tableWidget_2.setRowCount(0)
+        # заполняем таблицу данными о клиентах
+        data = workBD.get_all_users()
+        self.table_filling(data, "tableWidget_2")
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget_2.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -164,7 +167,7 @@ class Ui_Dialog(object):
 
         self.pushButton.clicked.connect(self.download)
         self.pushButton_2.clicked.connect(self.download)
-        self.tableWidget.cellDoubleClicked.connect(self.double_click)
+        self.tableWidget.cellDoubleClicked.connect(self.get_product_cart)
         self.pushButton_4.clicked.connect(self.search_by)
         self.pushButton_3.clicked.connect(lambda: self.dialog_close(Dialog))
 
@@ -244,9 +247,9 @@ class Ui_Dialog(object):
             # устанавливаем количество строк в таблице равное длине полученного списка
             self.tableWidget.setRowCount(len(data))
             # заполняем таблицу
-            self.table_filling(data)
+            self.table_filling(data, "tableWidget")
 
-    def double_click(self) -> None:
+    def get_product_cart(self) -> None:
         # получаем id продукта из названия вертикального заголовка
         current_row = self.tableWidget.currentRow()
         product_id = int(self.tableWidget.verticalHeaderItem(current_row).text())
@@ -258,6 +261,11 @@ class Ui_Dialog(object):
         ui_product_cart.setupUi(Dialog)
         Dialog.show()
         Dialog.exec_()
+
+    def get_user_cart(self) -> None:
+        # получаем id пользователя из названия вертикального заголовка
+        pass
+
 
     def search_by(self) -> None:
         """
@@ -279,7 +287,7 @@ class Ui_Dialog(object):
             data = workBD.search_by_param(warehouse, **{crit: value})
             # полученный результат используем для заполнения таблицы
             if data:
-                self.table_filling(data)
+                self.table_filling(data, "tableWidget")
             else:
                 # удаляем содержимое ячеек
                 self.tableWidget.clearContents()
@@ -287,35 +295,27 @@ class Ui_Dialog(object):
                 while self.tableWidget.rowCount() > 0:
                     self.tableWidget.removeRow(0)
 
-    def show_clients(self) -> None:
-        """
-        Метод для заполнения таблицы данными о клиентах.
-
-        :return: None
-        """
-        # получаем информацию о клиентах из БД
-        data = workBD.get_all_users()
-
-
-    def table_filling(self, data: list) -> None:
+    def table_filling(self, data: list, table_name: str) -> None:
         """
         Метод для заполнения таблицы tableWidget.
 
         :param data: Список кортежей.
+        :param table_name: Название экземпляра представляющего tableWidget.
         :return: None.
         """
         # устанавливаем количество строк в таблице равное длине полученного списка
-        self.tableWidget.setRowCount(len(data))
+        table_widget = getattr(self, table_name)
+        table_widget.setRowCount(len(data))
 
         for row, itm in enumerate(data):
             # устанавливаем значение вертикального заголовка как id
             item = QtWidgets.QTableWidgetItem(str(itm[0]))
-            self.tableWidget.setVerticalHeaderItem(row, item)
+            table_widget.setVerticalHeaderItem(row, item)
 
             # заполняем значениями все столбцы
             for i in range(1, len(itm)):
-                item = QtWidgets.QTableWidgetItem(itm[i])
-                self.tableWidget.setItem(row, i-1, item)
+                item = QtWidgets.QTableWidgetItem(str(itm[i]))
+                table_widget.setItem(row, i-1, item)
 
     @staticmethod
     def dialog_close(Dialog) -> None:
