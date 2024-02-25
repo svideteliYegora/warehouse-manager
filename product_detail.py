@@ -4,7 +4,7 @@ from BD import workBD
 from PyQt5.QtCore import Qt
 
 
-class Ui_ProductCart(object):
+class Ui_ProductDetail(object):
     product_id = None
 
     def setupUi(self, Dialog):
@@ -27,7 +27,7 @@ class Ui_ProductCart(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
-        self.pushButton.clicked.connect(lambda: self.dialog_close(Dialog))
+        self.pushButton.clicked.connect(lambda: Dialog.close())
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -35,38 +35,30 @@ class Ui_ProductCart(object):
 
         # получение информацию о товаре
         product: tuple = workBD.get_product_cart(self.product_id)
-        name = product[1]
-        category = product[2]
-        characteristic = product[3]
-        vendor_code = product[4]
-        price = product[5]
-        img_path = product[6]
+        id_, name, category, characteristic, vendor_code, price, img_path = product
         pixmap = QPixmap(img_path)
         self.label_2.setPixmap(pixmap)
 
         # масштабирование изображения
         self.label_2.setScaledContents(True)
-        text = "<b>Название</b>: <i>{}</i><br><br>" \
-               "<b>Категория</b>: <i>{}</i><br><br>" \
-               "<b>Артикул</b>: <i>{}</i><br><br>" \
-               "<b>Стоимость</b>: <i>{}</i><br><br>" \
-               "<b>Характеристика</b>:<br><i>{}</i>". \
-            format(name, category, vendor_code, price, characteristic)
 
+        # формирование и вставка текста
+        text = "<b>Название</b>: {}<br><br>" \
+               "<b>Категория</b>: {}<br><br>" \
+               "<b>Артикул</b>: {}<br><br>" \
+               "<b>Стоимость</b>: {}<br><br>" \
+               "<b>Характеристика</b>:<br> {}". \
+            format(name, category, vendor_code, price, characteristic)
         self.textEdit.setReadOnly(True)
         self.textEdit.setText(text)
         self.pushButton.setText(_translate("Dialog", "Выход"))
-
-    @staticmethod
-    def dialog_close(Dialog):
-        Dialog.close()
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Dialog = QtWidgets.QDialog()
-    ui = Ui_ProductCart()
+    ui = Ui_ProductDetail()
     ui.setupUi(Dialog)
     Dialog.show()
     sys.exit(app.exec_())

@@ -1,14 +1,12 @@
 import PyQt5
-from BD import workBD
+from BD import workBD, con
 from PyQt5 import QtCore, QtGui, QtWidgets
-from product_cart import Ui_ProductCart
+from product_detail import Ui_ProductDetail
+from user_detail import Ui_UserDetail
 from user_cart import Ui_UserCart
 
 
 class Ui_Dialog(object):
-    def __init__(self):
-        self.warehouses = workBD.get_warehouse_name()
-
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(501, 590)
@@ -166,13 +164,19 @@ class Ui_Dialog(object):
         self.pushButton_8.setGeometry(QtCore.QRect(360, 540, 121, 23))
         self.pushButton_8.setObjectName("pushButton_8")
         self.tabWidget.addTab(self.tab_3, "")
-
+        self.filling_combo_boxes()
+        self.tableWidget.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.tableWidget_2.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.pushButton.clicked.connect(self.download)
         self.pushButton_2.clicked.connect(self.download)
-        self.tableWidget.cellDoubleClicked.connect(lambda: self.get_cart(self.tableWidget))
-        self.tableWidget_2.cellDoubleClicked.connect(lambda: self.get_cart(self.tableWidget_2, flag=True))
+        self.tableWidget.cellDoubleClicked.connect(lambda: self.get_detail(self.tableWidget))
+        self.tableWidget_2.cellDoubleClicked.connect(lambda: self.get_detail(self.tableWidget_2, flag=True))
         self.pushButton_4.clicked.connect(self.search_by)
-        self.pushButton_3.clicked.connect(lambda: self.dialog_close(Dialog))
+        self.pushButton_3.clicked.connect(lambda: Dialog.close())
+        self.pushButton_8.clicked.connect(lambda: Dialog.close())
+        self.pushButton_6.clicked.connect(self.add_client)
+        self.pushButton_7.clicked.connect(self.del_client)
+        self.pushButton_5.clicked.connect(self.search_client)
 
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
@@ -183,7 +187,8 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.comboBox.setItemText(0, _translate("Dialog", "Список складов"))
 
-        for itm in self.warehouses:
+        warehouses = workBD.get_warehouse_name()
+        for itm in warehouses:
             self.comboBox.addItem(itm, userData=itm)
 
         self.label.setText(_translate("Dialog", "Склады:"))
@@ -203,22 +208,17 @@ class Ui_Dialog(object):
         item.setText(_translate("Dialog", "Дата доставки"))
         item = self.tableWidget.horizontalHeaderItem(6)
         item.setText(_translate("Dialog", "Срок годности"))
-
         self.label_2.setText(_translate("Dialog", "Список товаров по заданному складу:"))
         self.pushButton_3.setText(_translate("Dialog", "Выход"))
-
-        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("", userData="category")
         self.comboBox_2.setItemText(0, _translate("Dialog", "Категория"))
-        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("", userData="product_name")
         self.comboBox_2.setItemText(1, _translate("Dialog", "Название товара"))
-        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("", userData="vendor_code")
         self.comboBox_2.setItemText(2, _translate("Dialog", "Артикул"))
-
-
         self.label_3.setText(_translate("Dialog", "Поиск:"))
         self.pushButton_4.setText(_translate("Dialog", "Найти"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Dialog", "Склад"))
-
         item = self.tableWidget_2.horizontalHeaderItem(0)
         item.setText(_translate("Dialog", "Фамилия"))
         item = self.tableWidget_2.horizontalHeaderItem(1)
@@ -252,7 +252,124 @@ class Ui_Dialog(object):
             # заполнение таблицы
             self.table_filling(data, self.tableWidget)
 
-    def get_cart(self, table_widget: PyQt5.QtWidgets.QTableWidget, flag=False) -> None:
+    def add_client(self) -> None:
+        """
+        Вызов окна для добавления нового клиента.
+
+        :return: None.
+        """
+        Dialog = QtWidgets.QDialog()
+        ui = Ui_UserCart()
+        ui.setupUi(Dialog)
+        Dialog.show()
+        Dialog.exec_()
+        data = workBD.get_all_users()
+        self.table_filling(data, self.tableWidget_2)
+
+    def del_client(self) -> None:
+        """
+        Удаление выделенной записи из БД и из экземпляра QTableWidget.
+
+        :return: None.
+        """
+
+        # проверка на наличие выделенной строки
+        row_index = self.tableWidget_2.currentRow()
+        if row_index:
+            # получение данных из вертикального заголовка выделенной записи
+            user_id = self.tableWidget_2.verticalHeaderItem(row_index).text()
+            try:
+                # удаление записи из бд
+                workBD.del_record("users", id=user_id)
+                # удаление записи из таблицы QTableWidget
+                self.tableWidget_2.removeRow(row_index)
+            except Exception as e:
+                print(e)
+
+    def search_by(self) -> None:
+        """
+        Метод реализующий поиск в таблице tableWidget.
+
+        :return: None
+        """
+        if self.comboBox.currentData():
+            # получение данных для формирования запроса на поиск
+            warehouse = self.comboBox.currentText()
+            param = self.comboBox_2.currentData()
+            value = self.lineEdit.text()
+            # выполнение запроса
+            data = workBD.search_by_param(warehouse, **{param: value})
+            # полученный результат используется для заполнения таблицы
+            if data:
+                self.table_filling(data, self.tableWidget)
+            else:
+                # удаление содержимого ячеек
+                self.tableWidget.clearContents()
+                # удаление строки
+                while self.tableWidget.rowCount() > 0:
+                    self.tableWidget.removeRow(0)
+
+    def search_client(self) -> None:
+        """
+        Метод для получения выборки записей о клиентах, по заданным в комбо боксах критериях.
+
+        :return: None.
+        """
+        query = "SELECT id, first_name, last_name, surname, address FROM users"
+        params = []
+        if any(
+                [
+                    self.comboBox_3.currentData(),
+                    self.comboBox_4.currentData(),
+                    self.comboBox_5.currentData(),
+                    self.comboBox_6.currentData()
+                ]
+        ):
+            # формирование запроса на основе данных полученных из комбо боксов
+            query += " WHERE "
+            conditions = []
+            for combo_box in (self.comboBox_3, self.comboBox_4, self.comboBox_5, self.comboBox_6):
+                if combo_box.currentData():
+                    conditions.append(f"{combo_box.currentData()} = ?")
+                    params.append(combo_box.currentText())
+            query += " AND ".join(conditions)
+        # выполнение запроса
+        try:
+            with con:
+                if params:
+                    data = con.execute(query, params).fetchall()
+                else:
+                    data = con.execute(query).fetchall()
+        except Exception as e:
+            print(e)
+        # заполнение таблицы tableWidget_2
+        self.table_filling(data, self.tableWidget_2)
+
+
+
+
+
+    def filling_combo_boxes(self) -> None:
+        """
+        Метод для заполнения комбо боксов
+
+        :return: None.
+        """
+        try:
+            with con:
+                # получение уникальных значений столбцов из БД и заполнение комбо боксов
+                query = "SELECT DISTINCT {} FROM users"
+                combo_boxes = (self.comboBox_3, self.comboBox_4, self.comboBox_5, self.comboBox_6)
+                columns = ("last_name", "first_name", "surname", "address")
+                for i in range(len(combo_boxes)):
+                    data = con.execute(query.format(columns[i])).fetchall()
+                    for itm in data:
+                        combo_boxes[i].addItem(itm[0], userData=columns[i])
+        except Exception as e:
+            print(e)
+
+    @staticmethod
+    def get_detail(table_widget: PyQt5.QtWidgets.QTableWidget, flag=False) -> None:
         """
         Получение карты товара или клиента, в зависимости от указанного параметра.
 
@@ -266,41 +383,14 @@ class Ui_Dialog(object):
 
         # создание экземпляра диалогового окна и передача полученного id
         Dialog = QtWidgets.QDialog()
-        ui_cart = Ui_UserCart() if flag else Ui_ProductCart()
+        ui_cart = Ui_UserDetail() if flag else Ui_ProductDetail()
         setattr(ui_cart, "user_id", id_) if flag else setattr(ui_cart, "product_id", id_)
         ui_cart.setupUi(Dialog)
         Dialog.show()
         Dialog.exec_()
 
-    def search_by(self) -> None:
-        """
-        Метод реализующий поиск в таблице.
-
-        :return: None
-        """
-        if self.comboBox.currentData():
-            crit_dict = {
-                "Категория": "category",
-                "Название товара": "product_name",
-                "Артикул": "vendor_code"
-            }
-            # получаем нужные данные для формирования запроса на поиск
-            warehouse = self.comboBox.currentText()
-            crit = crit_dict[self.comboBox_2.currentText()]
-            value = self.lineEdit.text()
-            # выполняем запрос
-            data = workBD.search_by_param(warehouse, **{crit: value})
-            # полученный результат используем для заполнения таблицы
-            if data:
-                self.table_filling(data, self.tableWidget)
-            else:
-                # удаляем содержимое ячеек
-                self.tableWidget.clearContents()
-                # удаляем строки
-                while self.tableWidget.rowCount() > 0:
-                    self.tableWidget.removeRow(0)
-
-    def table_filling(self, data: list, table_widget: PyQt5.QtWidgets.QTableWidget) -> None:
+    @staticmethod
+    def table_filling(data: list, table_widget: PyQt5.QtWidgets.QTableWidget) -> None:
         """
         Метод для заполнения таблицы tableWidget.
 
@@ -321,9 +411,6 @@ class Ui_Dialog(object):
                 item = QtWidgets.QTableWidgetItem(str(itm[i]))
                 table_widget.setItem(row, i-1, item)
 
-    @staticmethod
-    def dialog_close(Dialog) -> None:
-        Dialog.close()
 
 
 if __name__ == "__main__":
