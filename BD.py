@@ -144,27 +144,18 @@ class MethosdBD:
         with con:
             con.execute(s)
 
-    def add_record(self,table:str,**param:dict):
+    def add_record(self, table: str, **param: dict):
         """
         Добавляет запись в указанную таблицу по указанным значениям в словаре
         :param table: имя таблицы
         :param param: словарь значений для записи в  таблицу
         :return: ничего не возвращает
         """
-        s=f"INSERT INTO {table} ("
-        s1=f"SELECT "
-        key = list(param.keys())
-        for i in range(len(param)):
-            if i == len(param) - 1:
-                s += f"{key[i]}) "
-                s1+=f"{param[key[i]]}"
-            else:
-                s += f"{key[i]},"
-                s1+= f"{param[key[i]]},"
-
-        s=s+s1
+        fields = str(tuple(param.keys())).replace("'", "")
+        values = str(tuple(param.values()))
+        query = f"INSERT INTO {table} {fields} VALUES {values}"
         with con:
-            con.execute(s)
+            con.execute(query)
 
     def get_warehouse_name(self):
         """
@@ -244,57 +235,31 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()[0]
 
-    def get_user_orders(self,user_id:int):
-        """
-        Получение данных о заказах клиента
-        :param user_id: id клиента
-        :return: список списков с даннами заказов(номер заказа, стоимость заказа, дата заказа, содержимое заказа(название и колличество))
-        """
-        s=f"""
-            SELECT id,total_price,order_date FROM orders
-            """
+    def get_user_orders(self, user_id: int):
+        query_orders = "SELECT id, total_price, order_date FROM orders " \
+                       "WHERE user_id = ?"
 
-        s1=f"""
-            SELECT order_number, product_name, quantity FROM products 
-            INNER JOIN orderDetail ON orderDetail.product_id=products.id
-            INNER JOIN orders ON orders.id=orderDetail.order_number
-            INNER JOIN users ON users.id=orders.user_id 
-            WHERE users.id={user_id}
-            """
+        query_products = "SELECT products.product_name, orderDetail.quantity FROM orderDetail " \
+                         "JOIN products ON orderDetail.product_id = products.id " \
+                         "WHERE orderDetail.order_number = ?"
+
         with con:
-            data=con.execute(s)
-            data1=con.execute(s1)
-            data=data.fetchall()
-            data1=data1.fetchall()
-            arr=[]
-            arr1=[]
-            for i in range(len(data)):
-                for j in range(len(data[i])):
-                    arr.append(data[i][j])
-                arr1.append(arr)
-                arr=[]
+            orders = con.execute(query_orders, (user_id,)).fetchall()
 
-            num=data1[0][0]
-            str=""
-            arr=[]
-            for i in range(len(data1)):
-                if data1[i][0]==num and i==len(data1)-1:
-                    str+=f"{data1[i][1]}-{data1[i][2]}шт,"
-                    arr.append(str)
-                elif data1[i][0]!=num and i==len(data1)-1:
-                    arr.append(str)
-                    arr.append(f"{data1[i][1]}-{data1[i][2]}шт,")
-                elif data1[i][0]!=num:
-                    arr.append(str)
-                    str=f"{data1[i][1]}-{data1[i][2]}шт,"
-                    num=data1[i][0]
-                elif data1[i][0]==num:
-                    str += f"{data1[i][1]}-{data1[i][2]}шт,"
+        orders = [list(i) for i in orders]
 
-            for i in range(len(arr1)):
-                arr1[i].append(arr[i])
+        for i in range(len(orders)):
+            order_number = orders[i][0]
+            with con:
+                products = con.execute(query_products, (order_number,)).fetchall()
+                dt = []
+                for item in products:
+                    if item:
+                        name, quantity = item
+                        dt.append(f"{name} - {quantity}шт")
+                orders[i].append(", ".join(dt))
 
-            return arr1
+        return orders
 
 
     def get_warehouses_info(self):
@@ -317,7 +282,7 @@ class MethosdBD:
         """
         p = ""
         for key, value in param.items():
-            p += f"{key} LIKE='%{value}%'"
+            p += f"{key} LIKE '%{value}%'"
         p = "products." + p
 
         query = f"""
