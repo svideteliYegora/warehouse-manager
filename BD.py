@@ -138,9 +138,10 @@ class MethosdBD:
         key = list(param.keys())
         for i in range(len(param)):
             if i == len(param) - 1:
-                s += f"{key[i]}={param[key[i]]}"
+                s += f"{key[i]} = '{param[key[i]]}'"
             else:
-                s += f"{key[i]}={param[key[i]]} AND "
+                s += f"{key[i]} = '{param[key[i]]}' AND "
+            print(s)
         with con:
             con.execute(s)
 
