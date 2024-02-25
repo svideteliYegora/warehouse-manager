@@ -144,27 +144,18 @@ class MethosdBD:
         with con:
             con.execute(s)
 
-    def add_record(self,table:str,**param:dict):
+    def add_record(self, table: str, **param: dict):
         """
         Добавляет запись в указанную таблицу по указанным значениям в словаре
         :param table: имя таблицы
         :param param: словарь значений для записи в  таблицу
         :return: ничего не возвращает
         """
-        s=f"INSERT INTO {table} ("
-        s1=f"SELECT "
-        key = list(param.keys())
-        for i in range(len(param)):
-            if i == len(param) - 1:
-                s += f"{key[i]}) "
-                s1+=f"{param[key[i]]}"
-            else:
-                s += f"{key[i]},"
-                s1+= f"{param[key[i]]},"
-
-        s=s+s1
+        fields = str(tuple(param.keys())).replace("'", "")
+        values = str(tuple(param.values()))
+        query = f"INSERT INTO {table} {fields} VALUES {values}"
         with con:
-            con.execute(s)
+            con.execute(query)
 
     def get_warehouse_name(self):
         """
@@ -244,7 +235,6 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()[0]
 
-
     def get_user_orders(self, user_id: int):
         query_orders = "SELECT id, total_price, order_date FROM orders " \
                        "WHERE user_id = ?"
@@ -263,14 +253,15 @@ class MethosdBD:
             with con:
                 products = con.execute(query_products, (order_number,)).fetchall()
                 dt = []
-                print(products)
                 for item in products:
                     if item:
                         name, quantity = item
-                        dt.append(f"{name} - {quantity}")
+                        dt.append(f"{name} - {quantity}шт")
                 orders[i].append(", ".join(dt))
 
         return orders
+
+
     def get_warehouses_info(self):
         """
         Получение информаци о складах
@@ -303,18 +294,8 @@ class MethosdBD:
         with con:
             return con.execute(query).fetchall()
 
-    def add_record(self, table: str, **param: dict):
-        """
-        Добавляет запись в указанную таблицу по указанным значениям в словаре
-        :param table: имя таблицы
-        :param param: словарь значений для записи в  таблицу
-        :return: ничего не возвращает
-        """
-        fields = str(tuple(param.keys())).replace("'", "")
-        values = str(tuple(param.values()))
-        query = f"INSERT INTO {table} {fields} VALUES {values}"
-        with con:
-            con.execute(query)
-
+    def addupdate_query(self, field, value, table_name, id):
+        query = f"UPDATE {table_name} SET {field} = {value} WHERE id = {id}"
+        self.queries_list.append(query)
 
 workBD=MethosdBD()
