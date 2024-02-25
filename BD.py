@@ -267,7 +267,7 @@ class MethosdBD:
         Получение информаци о складах
         :return: список кортежей
         """
-        s="SELECT warehouse_name, address, text_location, latitude,longitude FROM warehouse"
+        s="SELECT id, warehouse_name, address, text_location, latitude,longitude FROM warehouse"
         with con:
             data=con.execute(s)
             return data.fetchall()
