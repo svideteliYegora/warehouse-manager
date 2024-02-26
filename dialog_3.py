@@ -3,6 +3,7 @@ from BD import workBD, con
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap
 import sqlite3
+from Dialog_2 import Ui_Dialog_Edit
 
 
 class Ui_Dialog(object):
@@ -256,14 +257,11 @@ class Ui_Dialog(object):
 
         :return: None.
         """
-        # Dialog = QtWidgets.QDialog()
-        # ui = Ui_UserCart()
-        # ui.setupUi(Dialog)
-        # Dialog.show()
-        # Dialog.exec_()
-        pass
-
-
+        Dialog = QtWidgets.QDialog()
+        ui = Ui_Dialog_Edit()
+        ui.setupUi(Dialog)
+        Dialog.show()
+        Dialog.exec_()
 
     def download(self) -> None:
         """

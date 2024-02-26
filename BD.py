@@ -206,6 +206,17 @@ class MethosdBD:
             data = con.execute(s)
             return data.fetchall()
 
+    def get_products_from_warehouse_2(self, warehouse_name):
+        s=f"""
+            SELECT products.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
+            INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
+            WHERE warehouse.warehouse_name='{warehouse_name}'
+            """
+        with con:
+            data = con.execute(s)
+            return data.fetchall()
+
     def get_product_cart(self,product_id:int):
         """
         Получение данных товара для карты товара
