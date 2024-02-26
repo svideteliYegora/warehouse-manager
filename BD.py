@@ -138,9 +138,10 @@ class MethosdBD:
         key = list(param.keys())
         for i in range(len(param)):
             if i == len(param) - 1:
-                s += f"{key[i]}={param[key[i]]}"
+                s += f"{key[i]} = '{param[key[i]]}'"
             else:
-                s += f"{key[i]}={param[key[i]]} AND "
+                s += f"{key[i]} = '{param[key[i]]}' AND "
+            print(s)
         with con:
             con.execute(s)
 
@@ -148,7 +149,7 @@ class MethosdBD:
         """
         Добавляет запись в указанную таблицу по указанным значениям в словаре
         :param table: имя таблицы
-        :param param: словарь значений для записи в  таблицу
+        :param param: словарь значений для записи в таблицу
         :return: ничего не возвращает
         """
         fields = str(tuple(param.keys())).replace("'", "")
