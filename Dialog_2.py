@@ -10,7 +10,7 @@ import PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
 from BD import workBD
 
-class Ui_Dialog(object):
+class Ui_Dialog_Edit(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(604, 518)
