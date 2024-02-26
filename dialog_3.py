@@ -6,6 +6,8 @@ import sqlite3
 
 
 class Ui_Dialog(object):
+    lvl = 3
+
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(501, 590)
@@ -93,6 +95,15 @@ class Ui_Dialog(object):
         self.lineEdit.setText("")
         self.lineEdit.setObjectName("lineEdit")
         self.lineEdit.setPlaceholderText("введите текст")
+        self.pushButton_9 = QtWidgets.QPushButton(self.tab)
+        self.pushButton_9.setGeometry(QtCore.QRect(240, 60, 191, 23))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.pushButton_9.setFont(font)
+        self.pushButton_9.setObjectName("pushButton_9")
+        self.pushButton_9.setText("Редактировать")
+        if self.lvl not in (1, 2):
+            self.pushButton_9.setVisible(False)
         self.tabWidget.addTab(self.tab, "")
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
@@ -176,6 +187,8 @@ class Ui_Dialog(object):
         self.pushButton_6.clicked.connect(self.add_client)
         self.pushButton_7.clicked.connect(self.del_client)
         self.pushButton_5.clicked.connect(self.search_client)
+        self.pushButton_9.clicked.connect(self.edit)
+
 
         self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
@@ -236,6 +249,21 @@ class Ui_Dialog(object):
         self.pushButton_7.setText(_translate("Dialog", "Удалить клиента"))
         self.pushButton_8.setText(_translate("Dialog", "Выход"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Dialog", "Клиенты"))
+
+    def edit(self) -> None:
+        """
+        Метод вызывающий окно для редактирования таблиц: 'Склады', 'Товары', доступен для пользователей 1 и 2 уровня.
+
+        :return: None.
+        """
+        # Dialog = QtWidgets.QDialog()
+        # ui = Ui_UserCart()
+        # ui.setupUi(Dialog)
+        # Dialog.show()
+        # Dialog.exec_()
+        pass
+
+
 
     def download(self) -> None:
         """

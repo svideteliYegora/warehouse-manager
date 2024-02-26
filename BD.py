@@ -184,8 +184,10 @@ class MethosdBD:
             WHERE staff.password='{password}' AND staff.login='{login}'
         """
         with con:
-            data = con.execute(s)
-            return data.fetchall()[0][0]
+            data = con.execute(s).fetchall()
+            if data:
+                return data[0][0]
+            return 0
 
     def get_products_from_warehouse(self,warehouse_name:str):
         """
