@@ -247,9 +247,9 @@ class Ui_Dialog_Edit(object):
         self.comboBox_2.addItems(['Категория', 'Название', 'Артикул'])
 
         # Комбобоксы
-        warehouse_names = workBD.get_warehouse_name()
-        for name in warehouse_names:
-            self.comboBox.addItem(name, userData=name)
+        warehouses = workBD.get_table("warehouse")
+        for row in warehouses:
+            self.comboBox.addItem(row[1], userData=row[0])
 
     # Таблица 1
 
@@ -314,10 +314,8 @@ class Ui_Dialog_Edit(object):
         hat = ['product_name','category','price','vendor_code','delivery_date','expiration_date','quantity', 'characteristic', 'image_path']
 
         for row in range(row_count):
-            print(self.tableWidget_2.verticalHeaderItem(row).text())
             if self.tableWidget_2.verticalHeaderItem(row).text() == 'New':
                 row_data = {}
-                data_products = {}
                 flag = True
                 for column in range(column_count):
                     item = self.tableWidget_2.item(row, column)
@@ -330,11 +328,11 @@ class Ui_Dialog_Edit(object):
                     elif item is not None and column == 3:
                         row_data[hat[3]] = item.text()
                     elif item is not None and column == 4:
-                        data_products[hat[4]] = item.text()
+                        row_data[hat[4]] = item.text()
                     elif item is not None and column == 5:
-                        data_products[hat[5]] = item.text()
+                        row_data[hat[5]] = item.text()
                     elif item is not None and column == 6:
-                        data_products[hat[6]] = item.text()
+                        row_data[hat[6]] = item.text()
                     elif item is not None and column == 7:
                         row_data[hat[7]] = item.text()
                     elif item is not None and column == 8:
@@ -345,10 +343,10 @@ class Ui_Dialog_Edit(object):
 
                 print(flag)
                 if flag == True:
-                    print(row_data)
-                    print(data_products)
-                    workBD.add_record('products', **row_data)
-                    workBD.add_record('warehouseProduct',**data_products)
+                    row_data["warehouse_id"] = int(self.comboBox.currentData())
+                    dt = workBD.add_warehouse_product(**row_data)
+                    if dt:
+                        self.download()
 
     def click(self, row, col):
         if self.tableWidget_2.verticalHeaderItem(row).text() == "New":
@@ -430,7 +428,7 @@ class Ui_Dialog_Edit(object):
         if self.comboBox.currentData() is not None:
             # получение списка с данными для заполнения таблицы
             data = workBD.get_products_from_warehouse_2(self.comboBox.currentText())
-
+            print(data, "Aaa")
             # установка количества строк в таблице равное длине полученного списка
             self.tableWidget_2.setRowCount(len(data))
 

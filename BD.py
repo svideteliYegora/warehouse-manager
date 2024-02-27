@@ -312,4 +312,48 @@ class MethosdBD:
         query = f"UPDATE {table_name} SET {field} = {value} WHERE id = {id}"
         self.queries_list.append(query)
 
+    def add_warehouse_product(self, **params):
+        product_query = "INSERT INTO " \
+                        "products (product_name, category, characteristic, vendor_code, price, image_path) " \
+                        "VALUES (?, ?, ?, ?, ?, ?)"
+        values = (
+            params["product_name"],
+            params["category"],
+            params["characteristic"],
+            params["vendor_code"],
+            params["price"],
+            params["image_path"]
+        )
+        try:
+            with con:
+                dt = con.execute(product_query, values)
+                prod_id = dt.lastrowid
+        except Exception as e:
+            print(e)
+            return 0
+
+        params["product_id"] = prod_id
+        warehouse_product_query = "INSERT INTO " \
+                                  "warehouseProduct (warehouse_id, product_id, quantity, delivery_date, expiration_date) " \
+                                  "VALUES (?, ?, ?, ?, ?)"
+        values = (
+            params["warehouse_id"],
+            params["product_id"],
+            params["quantity"],
+            params["delivery_date"],
+            params["expiration_date"],
+        )
+        try:
+            with con:
+                con.execute(warehouse_product_query, values)
+        except Exception as e:
+            print(e)
+            return 0
+        return 1
+
+
+
+
+
+
 workBD=MethosdBD()
