@@ -1,8 +1,8 @@
 import PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QFileDialog, QWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QFileDialog, QWidget, QLineEdit
 from BD import workBD
 
 
@@ -92,7 +92,7 @@ class Ui_Dialog_Edit(object):
         self.comboBox_2.setEditable(True)
         self.comboBox_2.setObjectName("comboBox_2")
         self.comboBox_2.addItem("")
-        self.lineEdit = QtWidgets.QLineEdit(self.tab_2)
+        self.lineEdit = QLineEdit(self.tab_2)
         self.lineEdit.setGeometry(QtCore.QRect(250, 60, 181, 21))
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -241,8 +241,10 @@ class Ui_Dialog_Edit(object):
         self.pushButton_13.clicked.connect(self.table_dialog)
         self.pushButton_10.clicked.connect(self.save_table2)
         self.pushButton_8.clicked.connect(self.add_warehosue)
-        self.pushButton_9.clicked.connect(self.delete)
+        self.pushButton_9.clicked.connect(lambda: self.delete(self.tableWidget_2))
         self.tableWidget_2.cellClicked.connect(self.click)
+        self.pushButton_11.clicked.connect(self.cancel)
+        self.pushButton_7.clicked.connect(self.search_by)
 
         self.comboBox_2.addItems(['Категория', 'Название', 'Артикул'])
 
@@ -309,44 +311,39 @@ class Ui_Dialog_Edit(object):
 
     # Таблица 2
     def save_table2(self):
+
         row_count = self.tableWidget_2.rowCount()
         column_count = self.tableWidget_2.columnCount()
         hat = ['product_name','category','price','vendor_code','delivery_date','expiration_date','quantity', 'characteristic', 'image_path']
-
-        for row in range(row_count):
-            if self.tableWidget_2.verticalHeaderItem(row).text() == 'New':
-                row_data = {}
-                flag = True
-                for column in range(column_count):
-                    item = self.tableWidget_2.item(row, column)
-                    if item is not None and column == 0:
-                        row_data[hat[0]] = item.text()
-                    elif item is not None and column == 1:
-                        row_data[hat[1]] = item.text()
-                    elif item is not None and column == 2:
-                        row_data[hat[2]] = item.text()
-                    elif item is not None and column == 3:
-                        row_data[hat[3]] = item.text()
-                    elif item is not None and column == 4:
-                        row_data[hat[4]] = item.text()
-                    elif item is not None and column == 5:
-                        row_data[hat[5]] = item.text()
-                    elif item is not None and column == 6:
-                        row_data[hat[6]] = item.text()
-                    elif item is not None and column == 7:
-                        row_data[hat[7]] = item.text()
-                    elif item is not None and column == 8:
-                        row_data[hat[8]] = item.text()
-                    else:
-                        print('Пустая строка')
-                        flag = False
-
-                print(flag)
-                if flag == True:
+        if self.tableWidget_2.verticalHeaderItem(row_count - 1).text() == "New":
+            row_data = {}
+            for column in range(column_count):
+                item = self.tableWidget_2.item(row_count - 1, column)
+                if item is not None and column == 0:
+                    row_data[hat[0]] = item.text()
+                elif item is not None and column == 1:
+                    row_data[hat[1]] = item.text()
+                elif item is not None and column == 2:
+                    row_data[hat[2]] = item.text()
+                elif item is not None and column == 3:
+                    row_data[hat[3]] = item.text()
+                elif item is not None and column == 4:
+                    row_data[hat[4]] = item.text()
+                elif item is not None and column == 5:
+                    row_data[hat[5]] = item.text()
+                elif item is not None and column == 6:
+                    row_data[hat[6]] = item.text()
+                elif item is not None and column == 7:
+                    row_data[hat[7]] = item.text()
+                elif item is not None and column == 8:
+                    row_data[hat[8]] = item.text()
+                if len(row_data) == len(hat):
                     row_data["warehouse_id"] = int(self.comboBox.currentData())
-                    dt = workBD.add_warehouse_product(**row_data)
-                    if dt:
-                        self.download()
+                    workBD.add_warehouse_product(**row_data)
+                    self.download()
+                if workBD.queries and self.tableWidget_2.verticalHeaderItem(row_count - 1).text() != "New":
+                    workBD.execute_queries()
+                    self.download()
 
     def click(self, row, col):
         if self.tableWidget_2.verticalHeaderItem(row).text() == "New":
@@ -361,18 +358,18 @@ class Ui_Dialog_Edit(object):
                 item = QtWidgets.QTableWidgetItem(file_path)
                 self.tableWidget_2.setItem(row, col, item)
 
-
-    def delete(self):
-        current_row = self.tableWidget_2.currentRow()
+    @staticmethod
+    def delete(table_widget: QtWidgets.QTableWidget):
+        current_row = table_widget.currentRow()
         if current_row > -1:
-            self.tableWidget_2.removeRow(current_row)
+            warehouse_product_id = table_widget.verticalHeaderItem(current_row).text()
+            workBD.add_del_query("warehouseProduct", id=warehouse_product_id)
+            table_widget.removeRow(current_row)
 
-    def table_dialog(self):
-        Dialog = QtWidgets.QDialog()
-        ui = Ui_Dialog1()
-        ui.setupUi(Dialog)
-        Dialog.show()
-        Dialog.exec_()
+    def cancel(self):
+        workBD.queries.clear()
+        self.download()
+
 
     def search_by(self) -> None:
         if self.comboBox.currentData():
@@ -389,13 +386,13 @@ class Ui_Dialog_Edit(object):
             data = workBD.search_by_param(warehouse, **{crit: value})
             # полученный результат используем для заполнения таблицы
             if data:
-                self.table_filling(data, self.tableWidget)
+                self.table_filling(data, self.tableWidget_2)
             else:
                 # удаляем содержимое ячеек
-                self.tableWidget.clearContents()
+                self.tableWidget_2.clearContents()
                 # удаляем строки
-                while self.tableWidget.rowCount() > 0:
-                    self.tableWidget.removeRow(0)
+                while self.tableWidget_2.rowCount() > 0:
+                    self.tableWidget_2.removeRow(0)
 
     @staticmethod
     def table_filling(data: list, table_widget: PyQt5.QtWidgets.QTableWidget) -> None:
@@ -428,54 +425,106 @@ class Ui_Dialog_Edit(object):
         if self.comboBox.currentData() is not None:
             # получение списка с данными для заполнения таблицы
             data = workBD.get_products_from_warehouse_2(self.comboBox.currentText())
-            print(data, "Aaa")
             # установка количества строк в таблице равное длине полученного списка
             self.tableWidget_2.setRowCount(len(data))
 
             # заполнение таблицы
             self.table_filling(data, self.tableWidget_2)
 
+    def table_dialog(self):
+        warehouse_product = self.tableWidget_2.verticalHeaderItem(self.tableWidget_2.currentRow())
+        if warehouse_product:
+            warehouse_product = warehouse_product.text()
+            Dialog = QtWidgets.QDialog()
+            ui = Ui_Dialog1()
+            ui.warehouse_product = warehouse_product
+            ui.setupUi(Dialog)
+            Dialog.show()
+            Dialog.exec_()
+
 
 class Ui_Dialog1(object):
+    warehouse_product = None
+    dialog = None
+
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(420, 384)
+        Dialog.resize(420, 728)
+        self.dialog = Dialog
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(20, 10, 111, 21))
         self.label.setObjectName("label")
-        self.lineEdit = QtWidgets.QLineEdit(Dialog)
+        self.lineEdit = QLineEdit(Dialog)
         self.lineEdit.setGeometry(QtCore.QRect(20, 40, 381, 22))
         self.lineEdit.setObjectName("lineEdit")
         self.label_2 = QtWidgets.QLabel(Dialog)
         self.label_2.setGeometry(QtCore.QRect(20, 70, 111, 21))
         self.label_2.setObjectName("label_2")
-        self.lineEdit_2 = QtWidgets.QLineEdit(Dialog)
+        self.lineEdit_2 = QLineEdit(Dialog)
         self.lineEdit_2.setGeometry(QtCore.QRect(20, 100, 381, 22))
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.label_3 = QtWidgets.QLabel(Dialog)
         self.label_3.setGeometry(QtCore.QRect(20, 130, 111, 21))
         self.label_3.setObjectName("label_3")
-        self.lineEdit_3 = QtWidgets.QLineEdit(Dialog)
+        self.lineEdit_3 = QLineEdit(Dialog)
         self.lineEdit_3.setGeometry(QtCore.QRect(20, 160, 381, 22))
         self.lineEdit_3.setObjectName("lineEdit_3")
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setGeometry(QtCore.QRect(20, 190, 111, 21))
         self.label_4.setObjectName("label_4")
-        self.lineEdit_4 = QtWidgets.QLineEdit(Dialog)
+        self.lineEdit_4 = QLineEdit(Dialog)
         self.lineEdit_4.setGeometry(QtCore.QRect(20, 220, 381, 22))
         self.lineEdit_4.setObjectName("lineEdit_4")
         self.label_5 = QtWidgets.QLabel(Dialog)
-        self.label_5.setGeometry(QtCore.QRect(20, 250, 111, 21))
+        self.label_5.setGeometry(QtCore.QRect(20, 590, 111, 21))
         self.label_5.setObjectName("label_5")
         self.comboBox = QtWidgets.QComboBox(Dialog)
-        self.comboBox.setGeometry(QtCore.QRect(20, 280, 381, 22))
+        self.comboBox.setGeometry(QtCore.QRect(20, 620, 381, 22))
         self.comboBox.setObjectName("comboBox")
         self.pushButton = QtWidgets.QPushButton(Dialog)
-        self.pushButton.setGeometry(QtCore.QRect(20, 310, 381, 28))
+        self.pushButton.setGeometry(QtCore.QRect(20, 650, 381, 28))
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_2.setGeometry(QtCore.QRect(20, 340, 381, 28))
+        self.pushButton_2.setGeometry(QtCore.QRect(20, 680, 381, 28))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.lineEdit_5 = QLineEdit(Dialog)
+        self.lineEdit_5.setGeometry(QtCore.QRect(20, 290, 381, 22))
+        self.lineEdit_5.setObjectName("lineEdit_5")
+        self.label_6 = QtWidgets.QLabel(Dialog)
+        self.label_6.setGeometry(QtCore.QRect(20, 260, 111, 21))
+        self.label_6.setObjectName("label_6")
+        self.lineEdit_6 = QLineEdit(Dialog)
+        self.lineEdit_6.setGeometry(QtCore.QRect(20, 350, 381, 22))
+        self.lineEdit_6.setObjectName("lineEdit_6")
+        self.label_7 = QtWidgets.QLabel(Dialog)
+        self.label_7.setGeometry(QtCore.QRect(20, 320, 111, 21))
+        self.label_7.setObjectName("label_7")
+        self.lineEdit_7 = QLineEdit(Dialog)
+        self.lineEdit_7.setGeometry(QtCore.QRect(20, 410, 381, 22))
+        self.lineEdit_7.setObjectName("lineEdit_7")
+        self.label_8 = QtWidgets.QLabel(Dialog)
+        self.label_8.setGeometry(QtCore.QRect(20, 380, 111, 21))
+        self.label_8.setObjectName("label_8")
+        self.lineEdit_8 = QLineEdit(Dialog)
+        self.lineEdit_8.setGeometry(QtCore.QRect(20, 480, 381, 22))
+        self.lineEdit_8.setText("")
+        self.lineEdit_8.setObjectName("lineEdit_8")
+        self.label_9 = QtWidgets.QLabel(Dialog)
+        self.label_9.setGeometry(QtCore.QRect(20, 450, 111, 21))
+        self.label_9.setObjectName("label_9")
+        self.lineEdit_9 = LineEdit(Dialog)
+        self.lineEdit_9.setGeometry(QtCore.QRect(20, 550, 381, 22))
+        self.lineEdit_9.setText("")
+        self.lineEdit_9.setObjectName("lineEdit_9")
+        self.label_10 = QtWidgets.QLabel(Dialog)
+        self.label_10.setGeometry(QtCore.QRect(20, 520, 111, 21))
+        self.label_10.setObjectName("label_10")
+        self.comboBox.addItem("Список доступных категорий")
+        # получение категорий товаров
+        cats = workBD.get_cats()
+        if cats:
+            for cat in cats:
+                self.comboBox.addItem(cat, userData=cat)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -490,6 +539,27 @@ class Ui_Dialog1(object):
         self.label_5.setText(_translate("Dialog", "Категория:"))
         self.pushButton.setText(_translate("Dialog", "Сохранить"))
         self.pushButton_2.setText(_translate("Dialog", "Выход"))
+        self.label_6.setText(_translate("Dialog", "Количество:"))
+        self.label_7.setText(_translate("Dialog", "Стоимость:"))
+        self.label_8.setText(_translate("Dialog", "Дата завоза:"))
+        self.label_9.setText(_translate("Dialog", "Срок годности:"))
+        self.label_10.setText(_translate("Dialog", "Изображение:"))
+
+
+class LineEdit(QLineEdit):
+    def __init__(self, *args, **kwargs):
+        super(LineEdit, self).__init__(*args, **kwargs)
+        self.dialog = args[0]
+
+    def mousePressEvent(self, event):
+        options = QFileDialog.Options()
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(self.dialog, "Выберите изображение", "",
+                                                   "Images (*.png *.jpg *.jpeg *.bmp *.gif)", options=options)
+            self.setText(file_path)
+        except Exception as e:
+            print(e)
+
 
 if __name__ == "__main__":
     import sys

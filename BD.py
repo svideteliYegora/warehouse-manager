@@ -95,6 +95,8 @@ with con:
     """)
 
 class MethosdBD:
+    queries = []
+
     def get_table(self,table:str):
         """
         Получение всех записей из указанной таблицы
@@ -141,9 +143,13 @@ class MethosdBD:
                 s += f"{key[i]} = '{param[key[i]]}'"
             else:
                 s += f"{key[i]} = '{param[key[i]]}' AND "
-            print(s)
-        with con:
-            con.execute(s)
+        try:
+            with con:
+                con.execute(s)
+            return 1
+        except Exception as e:
+            print(e)
+            return 0
 
     def add_record(self, table: str, **param: dict):
         """
@@ -208,7 +214,7 @@ class MethosdBD:
 
     def get_products_from_warehouse_2(self, warehouse_name):
         s=f"""
-            SELECT products.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
+            SELECT warehouseProduct.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
             INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             WHERE warehouse.warehouse_name='{warehouse_name}'
@@ -351,9 +357,39 @@ class MethosdBD:
             return 0
         return 1
 
+    def add_del_query(self, table, **param):
+        s = f"DELETE FROM {table} WHERE "
+        key = list(param.keys())
+        for i in range(len(param)):
+            if i == len(param) - 1:
+                s += f"{key[i]} = '{param[key[i]]}'"
+            else:
+                s += f"{key[i]} = '{param[key[i]]}' AND "
+        self.queries.append(s)
 
+    def execute_queries(self):
+        count = 0
+        try:
+            with con:
+                for query in self.queries:
+                    con.execute(query)
+                    count += 1
+                self.queries.clear()
+                return count
+        except Exception as e:
+            print(e)
+            return count
 
-
+    def get_cats(self):
+        query = "SELECT DISTINCT category FROM products;"
+        try:
+            with con:
+                data = con.execute(query).fetchall()
+                data = [itm[0] for itm in data]
+                return data
+        except Exception as e:
+            print(e)
+            return None
 
 
 workBD=MethosdBD()

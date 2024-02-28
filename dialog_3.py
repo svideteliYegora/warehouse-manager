@@ -262,6 +262,7 @@ class Ui_Dialog(object):
         ui.setupUi(Dialog)
         Dialog.show()
         Dialog.exec_()
+        self.download()
 
     def download(self) -> None:
         """
