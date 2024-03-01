@@ -95,8 +95,6 @@ with con:
     """)
 
 class MethosdBD:
-    queries = []
-
     def get_table(self,table:str):
         """
         Получение всех записей из указанной таблицы
@@ -143,13 +141,9 @@ class MethosdBD:
                 s += f"{key[i]} = '{param[key[i]]}'"
             else:
                 s += f"{key[i]} = '{param[key[i]]}' AND "
-        try:
-            with con:
-                con.execute(s)
-            return 1
-        except Exception as e:
-            print(e)
-            return 0
+            print(s)
+        with con:
+            con.execute(s)
 
     def add_record(self, table: str, **param: dict):
         """
@@ -214,7 +208,7 @@ class MethosdBD:
 
     def get_products_from_warehouse_2(self, warehouse_name):
         s=f"""
-            SELECT warehouseProduct.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
+            SELECT products.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
             INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             WHERE warehouse.warehouse_name='{warehouse_name}'
@@ -318,78 +312,19 @@ class MethosdBD:
         query = f"UPDATE {table_name} SET {field} = {value} WHERE id = {id}"
         self.queries_list.append(query)
 
-    def add_warehouse_product(self, **params):
-        product_query = "INSERT INTO " \
-                        "products (product_name, category, characteristic, vendor_code, price, image_path) " \
-                        "VALUES (?, ?, ?, ?, ?, ?)"
-        values = (
-            params["product_name"],
-            params["category"],
-            params["characteristic"],
-            params["vendor_code"],
-            params["price"],
-            params["image_path"]
-        )
-        try:
-            with con:
-                dt = con.execute(product_query, values)
-                prod_id = dt.lastrowid
-        except Exception as e:
-            print(e)
-            return 0
+    def get_staff(self):
+        s="SELECT * FROM staff"
+        with con:
+            return con.execute(s).fetchall()
 
-        params["product_id"] = prod_id
-        warehouse_product_query = "INSERT INTO " \
-                                  "warehouseProduct (warehouse_id, product_id, quantity, delivery_date, expiration_date) " \
-                                  "VALUES (?, ?, ?, ?, ?)"
-        values = (
-            params["warehouse_id"],
-            params["product_id"],
-            params["quantity"],
-            params["delivery_date"],
-            params["expiration_date"],
-        )
-        try:
-            with con:
-                con.execute(warehouse_product_query, values)
-        except Exception as e:
-            print(e)
-            return 0
-        return 1
+    def get_staff_for_cmb(self):
+        first_name="SELECT DISTINCT first_name FROM staff"
+        last_name="SELECT DISTINCT last_name FROM staff"
+        surname="SELECT DISTINCT surname FROM staff"
+        access_level="SELECT DISTINCT access_id FROM staff"
 
-    def add_del_query(self, table, **param):
-        s = f"DELETE FROM {table} WHERE "
-        key = list(param.keys())
-        for i in range(len(param)):
-            if i == len(param) - 1:
-                s += f"{key[i]} = '{param[key[i]]}'"
-            else:
-                s += f"{key[i]} = '{param[key[i]]}' AND "
-        self.queries.append(s)
-
-    def execute_queries(self):
-        count = 0
-        try:
-            with con:
-                for query in self.queries:
-                    con.execute(query)
-                    count += 1
-                self.queries.clear()
-                return count
-        except Exception as e:
-            print(e)
-            return count
-
-    def get_cats(self):
-        query = "SELECT DISTINCT category FROM products;"
-        try:
-            with con:
-                data = con.execute(query).fetchall()
-                data = [itm[0] for itm in data]
-                return data
-        except Exception as e:
-            print(e)
-            return None
+        with con:
+            return [con.execute(first_name).fetchall(),con.execute(last_name).fetchall(),con.execute(surname).fetchall(),con.execute(access_level).fetchall()]
 
     def edit_product(self, warehouse_product_id):
         try:
