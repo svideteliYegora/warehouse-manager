@@ -391,5 +391,34 @@ class MethosdBD:
             print(e)
             return None
 
+    def edit_product(self, warehouse_product_id):
+        try:
+            with con:
+                data = con.execute("SELECT products.id "
+                                   "FROM warehouseProduct "
+                                   "JOIN products "
+                                   "ON products.id = warehouseProduct.product_id "
+                                   "WHERE warehouseProduct.id = ?",(warehouse_product_id,)).fetchone()
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_staff(self):
+        s = "SELECT * FROM staff"
+        with con:
+            return con.execute(s).fetchall()
+
+    def get_staff_for_cmb(self):
+        first_name = "SELECT DISTINCT first_name FROM staff"
+        last_name = "SELECT DISTINCT last_name FROM staff"
+        surname = "SELECT DISTINCT surname FROM staff"
+        access_level = "SELECT DISTINCT access_id FROM staff"
+
+        with con:
+            return [con.execute(first_name).fetchall(), con.execute(last_name).fetchall(),
+                    con.execute(surname).fetchall(), con.execute(access_level).fetchall()]
+
+
+
 
 workBD=MethosdBD()

@@ -3,7 +3,7 @@ from BD import workBD, con
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap
 import sqlite3
-from Dialog_2 import Ui_Dialog_Edit
+from dialog_2 import Ui_Dialog_Edit
 
 
 class Ui_Dialog(object):
@@ -175,6 +175,102 @@ class Ui_Dialog(object):
         self.pushButton_8.setGeometry(QtCore.QRect(360, 540, 121, 23))
         self.pushButton_8.setObjectName("pushButton_8")
         self.tabWidget.addTab(self.tab_3, "")
+
+        self.tab_4 = QtWidgets.QWidget()
+        self.tab_4.setObjectName("tab_4")
+        self.label_7 = QtWidgets.QLabel(self.tab_4)
+        self.label_7.setGeometry(QtCore.QRect(10, 20, 131, 16))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_7.setFont(font)
+        self.label_7.setObjectName("label_7")
+        self.tableWidget_5 = QtWidgets.QTableWidget(self.tab_4)
+        self.tableWidget_5.setGeometry(QtCore.QRect(10, 80, 471, 221))
+        self.tableWidget_5.setObjectName("tableWidget_5")
+        self.tableWidget_5.setColumnCount(6)
+        self.tableWidget_5.setRowCount(0)
+
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(4, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget_5.setHorizontalHeaderItem(5, item)
+
+        self.first_name_cmb = QtWidgets.QComboBox(self.tab_4)
+        self.first_name_cmb.setGeometry(QtCore.QRect(25, 59, 101, 22))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.first_name_cmb.setFont(font)
+        self.first_name_cmb.setEditable(True)
+        self.first_name_cmb.setObjectName("comboBox_8")
+        self.first_name_cmb.addItem("")
+        self.last_name_cmb = QtWidgets.QComboBox(self.tab_4)
+        self.last_name_cmb.setGeometry(QtCore.QRect(125, 59, 101, 22))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.last_name_cmb.setFont(font)
+        self.last_name_cmb.setEditable(True)
+        self.last_name_cmb.setObjectName("comboBox_9")
+        self.last_name_cmb.addItem("")
+        self.surname_cmb = QtWidgets.QComboBox(self.tab_4)
+        self.surname_cmb.setGeometry(QtCore.QRect(225, 59, 101, 22))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.surname_cmb.setFont(font)
+        self.surname_cmb.setEditable(True)
+        self.surname_cmb.setObjectName("comboBox_10")
+        self.surname_cmb.addItem("")
+        self.access_lvl_cmb = QtWidgets.QComboBox(self.tab_4)
+        self.access_lvl_cmb.setGeometry(QtCore.QRect(325, 59, 101, 22))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.access_lvl_cmb.setFont(font)
+        self.access_lvl_cmb.setEditable(True)
+        self.access_lvl_cmb.setObjectName("comboBox_11")
+        self.access_lvl_cmb.addItem("")
+        self.search_btn = QtWidgets.QPushButton(self.tab_4)
+        self.search_btn.setGeometry(QtCore.QRect(424, 58, 58, 24))
+        self.search_btn.setObjectName("pushButton_18")
+        self.add_btn = QtWidgets.QPushButton(self.tab_4)
+        self.add_btn.setGeometry(QtCore.QRect(10, 310, 141, 23))
+        self.add_btn.setObjectName("pushButton_20")
+        self.del_btn = QtWidgets.QPushButton(self.tab_4)
+        self.del_btn.setGeometry(QtCore.QRect(170, 310, 141, 23))
+        self.del_btn.setObjectName("pushButton_21")
+        self.save_btn = QtWidgets.QPushButton(self.tab_4)
+        self.save_btn.setGeometry(QtCore.QRect(330, 310, 151, 23))
+        self.save_btn.setObjectName("pushButton_22")
+        self.exit_btn = QtWidgets.QPushButton(self.tab_4)
+        self.exit_btn.setGeometry(QtCore.QRect(390, 550, 91, 23))
+        self.exit_btn.setObjectName("pushButton_23")
+        self.update_btn = QtWidgets.QPushButton(self.tab_4)
+        self.update_btn.setGeometry(QtCore.QRect(10, 35, 100, 23))
+        self.update_btn.setObjectName("pushButton_24")
+        self.tabWidget.addTab(self.tab_4, "")
+        data = workBD.get_staff()
+        self.table_filling(data, self.tableWidget_5)
+        self.filling_cmb(self.first_name_cmb, self.last_name_cmb, self.surname_cmb, self.access_lvl_cmb)
+
+        self.update_btn.clicked.connect(lambda: self.table_filling(workBD.get_staff(), self.tableWidget_5))
+        # self.update_btn.clicked.connect(
+        #     lambda: self.filling_cmb(data, self.first_name_cmb, self.last_name_cmb, self.surname_cmb,
+        #                              self.access_lvl_cmb))
+        self.search_btn.clicked.connect(self.search_staff)
+        self.del_btn.clicked.connect(self.del_staff)
+        self.add_btn.clicked.connect(lambda: self.add_staff(self.tableWidget_5))
+        self.save_btn.clicked.connect(self.save_staff)
+        self.exit_btn.clicked.connect(self.exit)
+        self.retranslateUi(Dialog)
+        self.tabWidget.setCurrentIndex(2)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
         self.filling_combo_boxes()
         self.tableWidget.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.tableWidget_2.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
@@ -250,6 +346,157 @@ class Ui_Dialog(object):
         self.pushButton_7.setText(_translate("Dialog", "Удалить клиента"))
         self.pushButton_8.setText(_translate("Dialog", "Выход"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Dialog", "Клиенты"))
+
+        self.label_7.setText(_translate("Dialog", "Список сотрудников"))
+
+        item = self.tableWidget_5.horizontalHeaderItem(0)
+        item.setText(_translate("Dialog", "Имя"))
+        item = self.tableWidget_5.horizontalHeaderItem(1)
+        item.setText(_translate("Dialog", "Фамилия"))
+        item = self.tableWidget_5.horizontalHeaderItem(2)
+        item.setText(_translate("Dialog", "Отчество"))
+        item = self.tableWidget_5.horizontalHeaderItem(3)
+        item.setText(_translate("Dialog", "Логин"))
+        item = self.tableWidget_5.horizontalHeaderItem(4)
+        item.setText(_translate("Dialog", "Пароль"))
+        item = self.tableWidget_5.horizontalHeaderItem(5)
+        item.setText(_translate("Dialog", "Уровень доступа"))
+        self.first_name_cmb.setItemText(0, _translate("Dialog", "Имена"))
+        self.last_name_cmb.setItemText(0, _translate("Dialog", "Фамилии"))
+        self.surname_cmb.setItemText(0, _translate("Dialog", "Отчество"))
+        self.access_lvl_cmb.setItemText(0, _translate("Dialog", "Статус"))
+        self.search_btn.setText(_translate("Dialog", "Поиск"))
+        self.add_btn.setText(_translate("Dialog", "Добавить сотрудника"))
+        self.del_btn.setText(_translate("Dialog", "Удалить сотрудника"))
+        self.save_btn.setText(_translate("Dialog", "Сохранить"))
+        self.exit_btn.setText(_translate("Dialog", "Выход"))
+        self.update_btn.setText(_translate("Dialog", "Обновить"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("Dialog", "Персонал"))
+
+    def filling_cmb(self,comboBox_1:PyQt5.QtWidgets.QComboBox,comboBox_2:PyQt5.QtWidgets.QComboBox,comboBox_3:PyQt5.QtWidgets.QComboBox,comboBox_4:PyQt5.QtWidgets.QComboBox):
+        """
+        заполнение комбобоксов
+        :param comboBox_1: комбобокс с именами
+        :param comboBox_2: комбобокс с фамилиями
+        :param comboBox_3: комбобокс с отчеством
+        :param comboBox_4: комбобкс с доступом
+        :return: -
+        """
+        data_for_cmb = workBD.get_staff_for_cmb()
+        columns = ("first_name", "last_name", "surname", "access_id")
+        comboBox_1.clear()
+        comboBox_2.clear()
+        comboBox_3.clear()
+        comboBox_4.clear()
+
+        comboBox_1.addItem("")
+        comboBox_2.addItem("")
+        comboBox_3.addItem("")
+        comboBox_4.addItem("")
+
+        for i in range(len(data_for_cmb)):
+            for j in range(len(data_for_cmb[i])):
+                if i == 0:
+                    comboBox_1.addItem(data_for_cmb[i][j][0], userData=columns[i])
+                elif i == 1:
+                    comboBox_2.addItem(data_for_cmb[i][j][0], userData=columns[i])
+                elif i == 2:
+                    comboBox_3.addItem(data_for_cmb[i][j][0], userData=columns[i])
+                elif i == 3:
+                    comboBox_4.addItem(str(data_for_cmb[i][j][0]), userData=columns[i])
+
+    def search_staff(self) -> None:
+        """
+        Метод для получения выборки записей о сотрудниках, по заданным в комбо боксах критериях.
+
+        :return: None.
+        """
+        query = "SELECT * FROM staff"
+        params = []
+        if any(
+                [
+                    self.first_name_cmb.currentData(),
+                    self.last_name_cmb.currentData(),
+                    self.surname_cmb.currentData(),
+                    self.access_lvl_cmb.currentData()
+                ]
+        ):
+            query += " WHERE "
+            conditions = []
+            for combo_box in (self.first_name_cmb, self.last_name_cmb, self.surname_cmb, self.access_lvl_cmb):
+                if combo_box.currentData():
+                    conditions.append(f"{combo_box.currentData()} = '{combo_box.currentText()}'")
+                    params.append(combo_box.currentText())
+            query += " AND ".join(conditions)
+        try:
+            with con:
+                if params:
+                    data = con.execute(query).fetchall()
+                else:
+                    data = con.execute(query).fetchall()
+        except Exception as e:
+            print(e)
+
+        self.table_filling(data,self.tableWidget_5)
+
+    def del_staff(self) -> None:
+        """
+        Удаление выделенной записи из БД и из экземпляра QTableWidget.
+
+        :return: None.
+        """
+
+        # проверка на наличие выделенной строки
+        row_index = self.tableWidget_5.currentRow()
+        if row_index:
+            # получение данных из вертикального заголовка выделенной записи
+            user_id = self.tableWidget_5.verticalHeaderItem(row_index).text()
+            try:
+                # удаление записи из бд
+                workBD.del_record("staff", id=user_id)
+                # удаление записи из таблицы QTableWidget
+                self.tableWidget_5.removeRow(row_index)
+            except Exception as e:
+                print(e)
+
+    def add_staff(self, table_widget: QtWidgets.QTableWidget):
+
+        rowPosition = table_widget.rowCount()
+        if rowPosition:
+            last_vert_header = table_widget.verticalHeaderItem(rowPosition - 1).text()
+            if last_vert_header != "New":
+                table_widget.insertRow(rowPosition)
+        else:
+            table_widget.setRowCount(1)
+        item = QtWidgets.QTableWidgetItem('New')
+        table_widget.setVerticalHeaderItem(rowPosition, item)
+
+    def save_staff(self):
+        row_count = self.tableWidget_5.rowCount()
+        column_count = self.tableWidget_5.columnCount()
+        list_params = ['first_name', 'last_name', 'surname', 'login', 'password',"access_id"]
+
+        for row in range(row_count):
+            if self.tableWidget_5.verticalHeaderItem(row).text() == 'New':
+                dict_for_add = {}
+                for column in range(column_count):
+                    item = self.tableWidget_5.item(row, column)
+                    if item:
+                        new_data = item.text()
+                    else:
+                        new_data = None
+                    dict_for_add[list_params[column]] = new_data
+
+                if all(list(dict_for_add.values())):
+                    try:
+                        workBD.add_record('staff', **dict_for_add)
+                        data = workBD.get_staff()
+                        self.table_filling(data, self.tableWidget_5)
+                    except Exception as e:
+                        print(e)
+
+    def exit(self):
+        sys.exit()
 
     def edit(self) -> None:
         """

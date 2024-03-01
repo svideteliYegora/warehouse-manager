@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QFileDialog, QWidget, QLineEdit
-from BD import workBD
+from BD import workBD, con
 
 
 class Ui_Dialog_Edit(object):
@@ -154,6 +154,9 @@ class Ui_Dialog_Edit(object):
         self.pushButton_13.setGeometry(QtCore.QRect(484, 390, 101, 23))
         self.pushButton_13.setObjectName("pushButton_13")
         self.tabWidget.addTab(self.tab_2, "")
+
+        self.pushButton_4.clicked.connect(self.dialog.close)
+        self.pushButton_12.clicked.connect(self.dialog.close)
 
         # Склады
         warehouses = workBD.get_warehouses_info()
@@ -314,7 +317,7 @@ class Ui_Dialog_Edit(object):
 
         row_count = self.tableWidget_2.rowCount()
         column_count = self.tableWidget_2.columnCount()
-        hat = ['product_name','category','price','vendor_code','delivery_date','expiration_date','quantity', 'characteristic', 'image_path']
+        hat = ['product_name','category','vendor_code','quantity','price','delivery_date','expiration_date', 'characteristic', 'image_path']
         if self.tableWidget_2.verticalHeaderItem(row_count - 1).text() == "New":
             row_data = {}
             for column in range(column_count):
@@ -432,99 +435,135 @@ class Ui_Dialog_Edit(object):
             self.table_filling(data, self.tableWidget_2)
 
     def table_dialog(self):
-        warehouse_product = self.tableWidget_2.verticalHeaderItem(self.tableWidget_2.currentRow())
-        if warehouse_product:
-            warehouse_product = warehouse_product.text()
-            Dialog = QtWidgets.QDialog()
-            ui = Ui_Dialog1()
-            ui.warehouse_product = warehouse_product
-            ui.setupUi(Dialog)
-            Dialog.show()
-            Dialog.exec_()
+        warehouse_product_id = self.tableWidget_2.verticalHeaderItem(self.tableWidget_2.currentRow())
+        if warehouse_product_id:
+            warehouse_product_id = warehouse_product_id.text()
+            if warehouse_product_id != "New":
+                Dialog = QtWidgets.QDialog()
+                ui = Ui_Dialog1()
+                ui.warehouse_product_id = warehouse_product_id
+                ui.setupUi(Dialog)
+                Dialog.show()
+                Dialog.exec_()
+                self.download()
+
 
 
 class Ui_Dialog1(object):
-    warehouse_product = None
+    warehouse_product_id = None
+    warehouse_id = None
+    product_id = None
     dialog = None
+    queries = {}
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(420, 728)
+        Dialog.resize(420, 677)
         self.dialog = Dialog
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(20, 10, 111, 21))
         self.label.setObjectName("label")
-        self.lineEdit = QLineEdit(Dialog)
+        self.lineEdit = LineEdit(Dialog)
         self.lineEdit.setGeometry(QtCore.QRect(20, 40, 381, 22))
         self.lineEdit.setObjectName("lineEdit")
         self.label_2 = QtWidgets.QLabel(Dialog)
         self.label_2.setGeometry(QtCore.QRect(20, 70, 111, 21))
         self.label_2.setObjectName("label_2")
-        self.lineEdit_2 = QLineEdit(Dialog)
+        self.lineEdit_2 = LineEdit(Dialog)
         self.lineEdit_2.setGeometry(QtCore.QRect(20, 100, 381, 22))
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.label_3 = QtWidgets.QLabel(Dialog)
         self.label_3.setGeometry(QtCore.QRect(20, 130, 111, 21))
         self.label_3.setObjectName("label_3")
-        self.lineEdit_3 = QLineEdit(Dialog)
+        self.lineEdit_3 = LineEdit(Dialog)
         self.lineEdit_3.setGeometry(QtCore.QRect(20, 160, 381, 22))
         self.lineEdit_3.setObjectName("lineEdit_3")
         self.label_4 = QtWidgets.QLabel(Dialog)
         self.label_4.setGeometry(QtCore.QRect(20, 190, 111, 21))
         self.label_4.setObjectName("label_4")
-        self.lineEdit_4 = QLineEdit(Dialog)
+        self.lineEdit_4 = LineEdit(Dialog)
         self.lineEdit_4.setGeometry(QtCore.QRect(20, 220, 381, 22))
         self.lineEdit_4.setObjectName("lineEdit_4")
         self.label_5 = QtWidgets.QLabel(Dialog)
-        self.label_5.setGeometry(QtCore.QRect(20, 590, 111, 21))
+        self.label_5.setGeometry(QtCore.QRect(20, 540, 111, 21))
         self.label_5.setObjectName("label_5")
         self.comboBox = QtWidgets.QComboBox(Dialog)
-        self.comboBox.setGeometry(QtCore.QRect(20, 620, 381, 22))
+        self.comboBox.setGeometry(QtCore.QRect(20, 570, 381, 22))
         self.comboBox.setObjectName("comboBox")
         self.pushButton = QtWidgets.QPushButton(Dialog)
-        self.pushButton.setGeometry(QtCore.QRect(20, 650, 381, 28))
+        self.pushButton.setGeometry(QtCore.QRect(20, 600, 381, 28))
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_2.setGeometry(QtCore.QRect(20, 680, 381, 28))
+        self.pushButton_2.setGeometry(QtCore.QRect(20, 630, 381, 28))
         self.pushButton_2.setObjectName("pushButton_2")
-        self.lineEdit_5 = QLineEdit(Dialog)
+        self.lineEdit_5 = LineEdit(Dialog)
         self.lineEdit_5.setGeometry(QtCore.QRect(20, 290, 381, 22))
         self.lineEdit_5.setObjectName("lineEdit_5")
         self.label_6 = QtWidgets.QLabel(Dialog)
         self.label_6.setGeometry(QtCore.QRect(20, 260, 111, 21))
         self.label_6.setObjectName("label_6")
-        self.lineEdit_6 = QLineEdit(Dialog)
-        self.lineEdit_6.setGeometry(QtCore.QRect(20, 350, 381, 22))
-        self.lineEdit_6.setObjectName("lineEdit_6")
-        self.label_7 = QtWidgets.QLabel(Dialog)
-        self.label_7.setGeometry(QtCore.QRect(20, 320, 111, 21))
-        self.label_7.setObjectName("label_7")
-        self.lineEdit_7 = QLineEdit(Dialog)
-        self.lineEdit_7.setGeometry(QtCore.QRect(20, 410, 381, 22))
+        self.lineEdit_7 = LineEdit(Dialog)
+        self.lineEdit_7.setGeometry(QtCore.QRect(20, 360, 381, 22))
         self.lineEdit_7.setObjectName("lineEdit_7")
         self.label_8 = QtWidgets.QLabel(Dialog)
-        self.label_8.setGeometry(QtCore.QRect(20, 380, 111, 21))
+        self.label_8.setGeometry(QtCore.QRect(20, 330, 111, 21))
         self.label_8.setObjectName("label_8")
-        self.lineEdit_8 = QLineEdit(Dialog)
-        self.lineEdit_8.setGeometry(QtCore.QRect(20, 480, 381, 22))
+        self.lineEdit_8 = LineEdit(Dialog)
+        self.lineEdit_8.setGeometry(QtCore.QRect(20, 430, 381, 22))
         self.lineEdit_8.setText("")
         self.lineEdit_8.setObjectName("lineEdit_8")
         self.label_9 = QtWidgets.QLabel(Dialog)
-        self.label_9.setGeometry(QtCore.QRect(20, 450, 111, 21))
+        self.label_9.setGeometry(QtCore.QRect(20, 400, 111, 21))
         self.label_9.setObjectName("label_9")
-        self.lineEdit_9 = LineEdit(Dialog)
-        self.lineEdit_9.setGeometry(QtCore.QRect(20, 550, 381, 22))
+        self.lineEdit_9 = LineEdit(Dialog, "lineEdit_9")
+        self.lineEdit_9.setGeometry(QtCore.QRect(20, 500, 381, 22))
         self.lineEdit_9.setText("")
         self.lineEdit_9.setObjectName("lineEdit_9")
         self.label_10 = QtWidgets.QLabel(Dialog)
-        self.label_10.setGeometry(QtCore.QRect(20, 520, 111, 21))
+        self.label_10.setGeometry(QtCore.QRect(20, 470, 111, 21))
         self.label_10.setObjectName("label_10")
-        self.comboBox.addItem("Список доступных категорий")
-        # получение категорий товаров
-        cats = workBD.get_cats()
-        if cats:
-            for cat in cats:
-                self.comboBox.addItem(cat, userData=cat)
+
+        # получение данных о продукте
+        try:
+            with con:
+                product_data = con.execute("SELECT * "
+                                           "FROM products JOIN warehouseProduct ON products.id = warehouseProduct.product_id "
+                                           "WHERE warehouseProduct.id = ?", (self.warehouse_product_id,)).fetchone()
+                self.lineEdit.setText(product_data[1])
+                self.lineEdit_2.setText(product_data[3])
+                self.lineEdit_3.setText(product_data[4])
+                self.lineEdit_4.setText(product_data[5])
+                self.lineEdit_5.setText(product_data[-3])
+                self.lineEdit_7.setText(product_data[-2])
+                self.lineEdit_8.setText(product_data[-1])
+                self.lineEdit_9.setText(product_data[6])
+                self.comboBox.addItem(product_data[2], userData=product_data[2])
+
+                # получение категорий товаров
+                cats = workBD.get_cats()
+                if cats:
+                    for cat in cats:
+                        if cat != product_data[2]:
+                            self.comboBox.addItem(cat, userData=cat)
+
+        except Exception as e:
+            print(e)
+
+        try:
+            with con:
+                data = con.execute("SELECT warehouse_id, product_id "
+                                   "FROM warehouseProduct "
+                                   "WHERE warehouseProduct.id = ?", (self.warehouse_product_id,)).fetchone()
+                Ui_Dialog1.warehouse_id = data[0]
+                Ui_Dialog1.product_id = data[1]
+                Ui_Dialog1.warehouse_product_id = self.warehouse_product_id
+        except Exception as e:
+            print(e)
+
+        self.comboBox.currentIndexChanged.connect(self.combo_box_change)
+        self.pushButton.clicked.connect(self.save)
+        self.queries.clear()
+        self.pushButton_2.clicked.connect(self.dialog.close)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -540,25 +579,62 @@ class Ui_Dialog1(object):
         self.pushButton.setText(_translate("Dialog", "Сохранить"))
         self.pushButton_2.setText(_translate("Dialog", "Выход"))
         self.label_6.setText(_translate("Dialog", "Количество:"))
-        self.label_7.setText(_translate("Dialog", "Стоимость:"))
         self.label_8.setText(_translate("Dialog", "Дата завоза:"))
         self.label_9.setText(_translate("Dialog", "Срок годности:"))
         self.label_10.setText(_translate("Dialog", "Изображение:"))
 
+    def combo_box_change(self):
+        self.queries["UPDATE products SET category = ? WHERE id = ?"] = (self.comboBox.currentText(), self.product_id)
+
+    def save(self):
+        try:
+            with con:
+                for query, params in self.queries.items():
+                    con.execute(query, params)
+            self.dialog.close()
+        except Exception as e:
+            print(e)
+
 
 class LineEdit(QLineEdit):
     def __init__(self, *args, **kwargs):
-        super(LineEdit, self).__init__(*args, **kwargs)
+        super(LineEdit, self).__init__(args[0], **kwargs)
         self.dialog = args[0]
+        self.textChanged.connect(self.onTextChanged)
+        try:
+            self.name = args[1]
+        except Exception as e:
+            self.name = None
 
     def mousePressEvent(self, event):
-        options = QFileDialog.Options()
-        try:
-            file_path, _ = QFileDialog.getOpenFileName(self.dialog, "Выберите изображение", "",
-                                                   "Images (*.png *.jpg *.jpeg *.bmp *.gif)", options=options)
-            self.setText(file_path)
-        except Exception as e:
-            print(e)
+        if self.name == "lineEdit_9":
+            options = QFileDialog.Options()
+            try:
+                file_path, _ = QFileDialog.getOpenFileName(self.dialog, "Выберите изображение", "",
+                                                       "Images (*.png *.jpg *.jpeg *.bmp *.gif)", options=options)
+                self.setText(file_path)
+            except Exception as e:
+                super().mousePressEvent(event)
+                print(e)
+        else:
+            super().mousePressEvent(event)
+
+    def onTextChanged(self, text):
+        update_queries = {
+            "lineEdit": ("UPDATE products SET product_name = ? WHERE id = ?", Ui_Dialog1.product_id),
+            "lineEdit_2": ("UPDATE products SET characteristic = ? WHERE id = ?", Ui_Dialog1.product_id),
+            "lineEdit_3": ("UPDATE products SET vendor_code = ? WHERE id = ?", Ui_Dialog1.product_id),
+            "lineEdit_4": ("UPDATE products SET price = ? WHERE id = ?", Ui_Dialog1.product_id),
+            "lineEdit_5": ("UPDATE warehouseProduct SET quantity = ? WHERE id = ?", Ui_Dialog1.warehouse_product_id),
+            "lineEdit_7": ("UPDATE warehouseProduct SET delivery_date = ? WHERE id = ?", Ui_Dialog1.warehouse_product_id),
+            "lineEdit_8": ("UPDATE warehouseProduct SET expiration_date = ? WHERE id = ?", Ui_Dialog1.warehouse_product_id),
+            "lineEdit_9": ("UPDATE products SET image_path = ? WHERE id = ?", Ui_Dialog1.product_id),
+        }
+
+        pair = update_queries[self.objectName()]
+        print(pair)
+        print(Ui_Dialog1.warehouse_product_id)
+        Ui_Dialog1.queries[pair[0]] = (text, pair[1])
 
 
 if __name__ == "__main__":
