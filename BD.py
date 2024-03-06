@@ -1,15 +1,9 @@
 import sqlite3 as sl
 
-con = sl.connect('warehouseBD.db', check_same_thread=False)
+con = sl.connect('warehouseDB.db', check_same_thread=False)
 cur=con.cursor()
 
 with con:
-    con.execute("""
-            CREATE TABLE IF NOT EXISTS access (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                access_level INTEGER
-            );
-        """)
 
     con.execute("""
         CREATE TABLE IF NOT EXISTS staff (
@@ -17,10 +11,10 @@ with con:
             first_name VARCHAR(20),
             last_name VARCHAR(20),
             surname VARCHAR(20),
+            full_name varchar(100) GENERATED ALWAYS AS (last_name || ' ' || first_name || ' ' || surname),
             login VARCHAR(20),
             password VARCHAR(20),
-            access_id INTEGER,
-            FOREIGN KEY (access_id) REFERENCES access (id)
+            access_level INTEGER
         );
     """)
 
@@ -30,7 +24,8 @@ with con:
             first_name VARCHAR(20),
             last_name VARCHAR(20),
             surname VARCHAR(20),
-            age INTEGER,
+            full_name varchar(100) GENERATED ALWAYS AS (last_name || ' ' || first_name || ' ' || surname),
+            birthday INTEGER,
             address VARCHAR(30),
             email VARCHAR(30)
         );
@@ -75,9 +70,9 @@ with con:
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             order_number INTEGER,
             quantity INTEGER,
-            product_id INTEGER,
+            products_id INTEGER,
             FOREIGN KEY (order_number) REFERENCES orders (id),
-            FOREIGN KEY (product_id) REFERENCES products (id)
+            FOREIGN KEY (products_id) REFERENCES products (id)
         );
     """)
 
@@ -85,14 +80,36 @@ with con:
         CREATE TABLE IF NOT EXISTS warehouseProduct (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             warehouse_id INTEGER,
-            product_id INTEGER,
+            products_id INTEGER,
             quantity INTEGER,
             delivery_date INTEGER,
             expiration_date INTEGER,
             FOREIGN KEY (warehouse_id) REFERENCES warehouse (id),
-            FOREIGN KEY (product_id) REFERENCES products (id)
+            FOREIGN KEY (products_id) REFERENCES products (id)
         );
     """)
+
+    con.execute("""
+            CREATE TABLE IF NOT EXISTS deliveries (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                warehouse_id INTEGER,
+                delivery_date INTEGER,
+                provider VARCHAR(30),
+                FOREIGN KEY (warehouse_id) REFERENCES warehouse (id)
+            );
+        """)
+
+    con.execute("""
+            CREATE TABLE IF NOT EXISTS delivery_contents (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                deliveries_id INTEGER,
+                products_id INTEGER,
+                quantity INTEGER,
+                expiration_date INTEGER,
+                FOREIGN KEY (deliveries_id) REFERENCES deliveries (id),
+                FOREIGN KEY (products_id) REFERENCES products (id)
+            );
+        """)
 
 class MethosdBD:
     def get_table(self,table:str):
