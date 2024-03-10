@@ -197,9 +197,8 @@ class MethosdBD:
         :return: возвращает число 1-3
         """
         s=f"""
-            SELECT access_level FROM access 
-            INNER JOIN staff ON access.id=staff.access_id 
-            WHERE staff.password='{password}' AND staff.login='{login}'
+            SELECT access_level FROM staff 
+            
         """
         with con:
             data = con.execute(s).fetchall()
@@ -214,8 +213,8 @@ class MethosdBD:
         :return: возвращает список кортежей
         """
         s=f"""
-            SELECT products.id, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
-            INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
+            SELECT products.id,warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             WHERE warehouse.warehouse_name='{warehouse_name}'
             """
@@ -223,15 +222,37 @@ class MethosdBD:
             data = con.execute(s)
             return data.fetchall()
 
-    def get_products_from_warehouse_2(self, warehouse_name):
+    def get_products_from_all_warehouse(self):
+        """
+        Получает товар во всех складах
+        :param warehouse_name: название склада
+        :return: список кортежей
+        """
         s=f"""
-            SELECT products.id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date, characteristic, image_path FROM products
-            INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
+            SELECT products.id,warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
-            WHERE warehouse.warehouse_name='{warehouse_name}'
             """
         with con:
             data = con.execute(s)
+            return data.fetchall()
+
+    def get_info_supplies(self, warehouse_name):
+        """
+        Метод для получения информации о поставках.
+
+        :param warehouse_name: Название склада.
+        :return: Список кортежей или пустой список.
+        """
+
+        inf = f"""
+            SELECT deliveries.id,warehouse_name, provider, delivery_date FROM deliveries
+            INNER JOIN warehouse ON deliveries.warehouse_id = warehouse.id
+            WHERE warehouse.warehouse_name = '{warehouse_name}'
+            """
+        with con:
+            data = con.execute(inf)
+            # print(data.fetchall())
             return data.fetchall()
 
     def get_product_cart(self,product_id:int):
@@ -364,7 +385,7 @@ class MethosdBD:
         first_name = "SELECT DISTINCT first_name FROM staff"
         last_name = "SELECT DISTINCT last_name FROM staff"
         surname = "SELECT DISTINCT surname FROM staff"
-        access_level = "SELECT DISTINCT access_id FROM staff"
+        access_level = "SELECT DISTINCT access_level FROM staff"
 
         with con:
             return [con.execute(first_name).fetchall(), con.execute(last_name).fetchall(),
