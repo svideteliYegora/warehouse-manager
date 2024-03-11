@@ -1,4 +1,5 @@
 import sqlite3 as sl
+import time
 
 con = sl.connect('warehouseDB.db', check_same_thread=False)
 cur=con.cursor()
@@ -219,8 +220,20 @@ class MethosdBD:
             WHERE warehouse.warehouse_name='{warehouse_name}'
             """
         with con:
-            data = con.execute(s)
-            return data.fetchall()
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                unix_delivery_date=float(data[i][7])
+                unix_expiration_date=float(data[i][8])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                unix_expiration_date=time.gmtime(unix_expiration_date)
+                data[i][7]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][8] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+
+
+            return data
 
     def get_products_from_all_warehouse(self):
         """
@@ -234,8 +247,19 @@ class MethosdBD:
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             """
         with con:
-            data = con.execute(s)
-            return data.fetchall()
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                unix_delivery_date=float(data[i][7])
+                unix_expiration_date=float(data[i][8])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                unix_expiration_date=time.gmtime(unix_expiration_date)
+                data[i][7]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][8] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+
+            return data
 
     def get_info_supplies(self, warehouse_name):
         """
