@@ -209,12 +209,12 @@ class MethosdBD:
 
     def get_products_from_warehouse(self,warehouse_name:str):
         """
-        Получение данных продуктов на складе для таблицы продуктов (id, product_name, category, vendor_code, quantity, price, delivery_date,expiration_date)
+        Получение товаров по выбранному одному складу
         :param warehouse_name: название склада
-        :return: возвращает список кортежей
+        :return: список списков
         """
         s=f"""
-            SELECT products.id,warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            SELECT warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
             INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             WHERE warehouse.warehouse_name='{warehouse_name}'
@@ -225,24 +225,23 @@ class MethosdBD:
             for i in range(len(data)):
                 data[i]=list(data[i])
 
-                unix_delivery_date=float(data[i][7])
-                unix_expiration_date=float(data[i][8])
+                unix_delivery_date=float(data[i][6])
+                unix_expiration_date=float(data[i][7])
                 unix_delivery_date=time.gmtime(unix_delivery_date)
                 unix_expiration_date=time.gmtime(unix_expiration_date)
-                data[i][7]= time.strftime("%m.%d.%Y",unix_delivery_date)
-                data[i][8] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+                data[i][6]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][7] = time.strftime("%m.%d.%Y" , unix_expiration_date)
 
 
             return data
 
     def get_products_from_all_warehouse(self):
         """
-        Получает товар во всех складах
-        :param warehouse_name: название склада
-        :return: список кортежей
+        получение товаров со всех складов сразу
+        :return: список списков
         """
         s=f"""
-            SELECT products.id,warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            SELECT warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
             INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
             INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
             """
@@ -252,18 +251,108 @@ class MethosdBD:
             for i in range(len(data)):
                 data[i]=list(data[i])
 
-                unix_delivery_date=float(data[i][7])
-                unix_expiration_date=float(data[i][8])
+                unix_delivery_date=float(data[i][6])
+                unix_expiration_date=float(data[i][7])
                 unix_delivery_date=time.gmtime(unix_delivery_date)
                 unix_expiration_date=time.gmtime(unix_expiration_date)
-                data[i][7]= time.strftime("%m.%d.%Y",unix_delivery_date)
-                data[i][8] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+                data[i][6]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][7] = time.strftime("%m.%d.%Y" , unix_expiration_date)
 
             return data
 
-    def get_info_supplies(self, warehouse_name):
+    def search_products_in_warehouse(self,warehouse_name:str,**param:dict):
         """
-        Метод для получения информации о поставках.
+        Получение товаров на заданном складе с заданнами параметрами поиска товара
+        :param warehouse_name: название склада
+        :param param: словарь с параметрами поиска
+        :return: список списков
+        """
+
+        s=f"""
+            SELECT warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
+            INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
+            WHERE warehouse.warehouse_name='{warehouse_name}' AND  
+            """
+
+        key = list(param.keys())
+        final_param={}
+
+        for i in range(len(param)):
+            if param[key[i]]!=None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                unix_delivery_date=float(data[i][6])
+                unix_expiration_date=float(data[i][7])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                unix_expiration_date=time.gmtime(unix_expiration_date)
+                data[i][6]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][7] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+
+
+            return data
+
+    def search_products_in_all_warehouse(self,**param:dict):
+        """
+        Получение товаров по заданным параметрам поиска на всех складах сразу
+        :param param: словарь параметров
+        :return: список списков
+        """
+
+        s=f"""
+            SELECT warehouse.warehouse_name, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
+            INNER JOIN warehouseProduct ON products.id = warehouseProduct.products_id 
+            INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
+            WHERE   
+            """
+
+        key = list(param.keys())
+        final_param={}
+
+        for i in range(len(param)):
+            if param[key[i]]!=None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                unix_delivery_date=float(data[i][6])
+                unix_expiration_date=float(data[i][7])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                unix_expiration_date=time.gmtime(unix_expiration_date)
+                data[i][6]= time.strftime("%m.%d.%Y",unix_delivery_date)
+                data[i][7] = time.strftime("%m.%d.%Y" , unix_expiration_date)
+
+            return data
+
+    def get_info_deliveryes_on_warehoouse(self, warehouse_name):
+        """
+        Метод для получения информации о поставках на заданном складе
 
         :param warehouse_name: Название склада.
         :return: Список кортежей или пустой список.
@@ -275,9 +364,280 @@ class MethosdBD:
             WHERE warehouse.warehouse_name = '{warehouse_name}'
             """
         with con:
-            data = con.execute(inf)
-            # print(data.fetchall())
+            data = con.execute(inf).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                data[i][0]=f"№{data[i][0]}"
+
+                unix_delivery_date=float(data[i][3])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                data[i][3]= time.strftime("%m.%d.%Y",unix_delivery_date)
+
+            return data
+
+    def get_info_deliveryes_all_warehouse(self):
+        """
+        Метод для получения информации о поставках на всех складах.
+
+        :return: Список списоков.
+        """
+
+        inf = f"""
+            SELECT deliveries.id,warehouse_name, provider, delivery_date FROM deliveries
+            INNER JOIN warehouse ON deliveries.warehouse_id = warehouse.id
+            """
+        with con:
+            data = con.execute(inf).fetchall()
+
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                data[i][0]=f"№{data[i][0]}"
+
+                unix_delivery_date=float(data[i][3])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                data[i][3]= time.strftime("%m.%d.%Y",unix_delivery_date)
+
+            return data
+
+
+    def search_deliveryes_on_warehouse(self,warehouse_n:str,**param:dict):
+        """
+        Получение поставок на заданном складе по заданным параметрам посиска
+        :param warehouse_n: название склада
+        :param param: словарь параметров поиска
+        :return: список списков
+        """
+
+        s=f"""
+            SELECT deliveries.id,warehouse_name, provider, delivery_date FROM deliveries
+            INNER JOIN warehouse ON deliveries.warehouse_id = warehouse.id
+            WHERE warehouse.warehouse_name = '{warehouse_n}' AND
+            """
+
+        key = list(param.keys())
+        final_param={}
+
+        for i in range(len(param)):
+            if param[key[i]]!=None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                data[i][0]=f"№{data[i][0]}"
+
+                unix_delivery_date=float(data[i][3])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                data[i][3]= time.strftime("%m.%d.%Y",unix_delivery_date)
+
+            return data
+
+
+    def search_deliveryes_all_warehouse(self,**param:dict):
+        """
+        Получение поставок на всех складах по заданным параметрам поиска
+        :param param: словарь параметров поиска
+        :return: список списков
+        """
+        s=f"""
+            SELECT deliveries.id,warehouse_name, provider, delivery_date FROM deliveries
+            INNER JOIN warehouse ON deliveries.warehouse_id = warehouse.id 
+            WHERE   
+            """
+
+        key = list(param.keys())
+        final_param={}
+
+        for i in range(len(param)):
+            if param[key[i]]!=None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i] = list(data[i])
+
+                data[i][0] = f"№{data[i][0]}"
+
+                unix_delivery_date = float(data[i][3])
+                unix_delivery_date = time.gmtime(unix_delivery_date)
+                data[i][3] = time.strftime("%m.%d.%Y", unix_delivery_date)
+
+            return data
+
+    def get_warehouses_info(self):
+        """
+        Получение информаци о складах
+        :return: список кортежей
+        """
+        s="SELECT * FROM warehouse"
+        with con:
+            data=con.execute(s)
             return data.fetchall()
+
+
+    def search_warehouse(self,**param:dict):
+        """
+        Получение инфы о складах по заданным параметрам поиска
+        :param param: словарь параметров поиска
+        :return: список кортежей
+        """
+        s = f"""
+             SELECT * FROM warehouse
+             WHERE   
+             """
+
+        key = list(param.keys())
+        final_param = {}
+
+        for i in range(len(param)):
+
+            if param[key[i]] != None:
+                if param[key[i]].text()!="":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s)
+            return data.fetchall()
+
+
+    def get_all_users(self):
+        """
+        Получение информации о всех клиентах для таблицы клиентов
+        :return: список списков
+        """
+        s="SELECT id,last_name,first_name,  surname,birthday,address,email FROM users"
+        with con:
+            data=con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                unix_delivery_date=float(data[i][4])
+                unix_delivery_date=time.gmtime(unix_delivery_date)
+                data[i][4]= time.strftime("%m.%d.%Y",unix_delivery_date)
+
+            return data
+
+
+    def search_users(self,**param):
+        """
+        Получение информации о клиентах по заданным параметрам поиска
+        :param param: словарь параметров поиска
+        :return: список списков
+        """
+        s="SELECT id,last_name,first_name,surname,birthday,address,email FROM users WHERE "
+
+        key = list(param.keys())
+        final_param = {}
+
+        for i in range(len(param)):
+
+            if param[key[i]] != None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                if key[i]=='full_name':
+
+                    s+=f"{key[i]} LIKE '%{final_param[key[i]].text()}%'"
+                else:
+                    s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                if key[i]=="fool_name":
+                    s+=f"{key[i]} LIKE '%{final_param[key[i]].text()}%' AND "
+                else:
+                    s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+        with con:
+            data = con.execute(s).fetchall()
+            for i in range(len(data)):
+                data[i] = list(data[i])
+
+                unix_delivery_date = float(data[i][4])
+                unix_delivery_date = time.gmtime(unix_delivery_date)
+                data[i][4] = time.strftime("%m.%d.%Y", unix_delivery_date)
+
+            return data
+
+    def get_staff(self):
+        """
+        получение информации о персонале
+        :return: список кортежей
+        """
+        s="SELECT id,last_name,first_name,surname,login,password,access_level FROM staff"
+        with con:
+            return con.execute(s).fetchall()
+
+    def search_staff(self,**param):
+        """
+        получение информации о персонали по заданным параметрам поиска
+        :param param: словарь параметров поиска
+        :return: список кортежей
+        """
+
+        s="SELECT id,last_name,first_name,surname,login,password,access_level FROM staff WHERE "
+
+        key = list(param.keys())
+        final_param = {}
+
+        for i in range(len(param)):
+
+            if param[key[i]] != None:
+                if param[key[i]].text() != "":
+                    final_param[key[i]] = param[key[i]]
+
+        key = list(final_param.keys())
+
+        for i in range(len(final_param)):
+            if i == len(final_param) - 1:
+                if key[i] == 'full_name':
+
+                    s += f"{key[i]} LIKE '%{final_param[key[i]].text()}%'"
+                else:
+                    s += f"{key[i]}='{final_param[key[i]].text()}'"
+            else:
+                if key[i] == "fool_name":
+                    s += f"{key[i]} LIKE '%{final_param[key[i]].text()}%' AND "
+                else:
+                    s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+
+        with con:
+            data = con.execute(s).fetchall()
+            return data
 
     def get_product_cart(self,product_id:int):
         """
@@ -290,15 +650,6 @@ class MethosdBD:
             data=con.execute(s)
             return data.fetchall()[0]
 
-    def get_all_users(self):
-        """
-        Получение информации о всех клиентах для таблицы клиентов
-        :return: список кортежей
-        """
-        s="SELECT id, first_name, last_name, surname, address FROM users"
-        with con:
-            data=con.execute(s)
-            return data.fetchall()
 
     def get_user_cart(self,user_id:int):
         """
@@ -338,46 +689,11 @@ class MethosdBD:
         return orders
 
 
-    def get_warehouses_info(self):
-        """
-        Получение информаци о складах
-        :return: список кортежей
-        """
-        s="SELECT id, warehouse_name, address, text_location, latitude,longitude FROM warehouse"
-        with con:
-            data=con.execute(s)
-            return data.fetchall()
-
-    def search_by_param(self,warehouse_name, **param) -> list:
-        """
-        Метод для поиска товаров по заданному параметру.
-
-        :param warehouse_name: Название склада.
-        :param param: Словарь с параметром, где ключ - название поля, значение - значение этого поля.
-        :return: Список кортежей или пустой список.
-        """
-        p = ""
-        for key, value in param.items():
-            p += f"{key} LIKE '%{value}%'"
-        p = "products." + p
-
-        query = f"""
-                SELECT products.id, product_name, category, vendor_code, quantity, products.price, delivery_date,expiration_date FROM products
-                INNER JOIN warehouseProduct ON products.id = warehouseProduct.product_id 
-                INNER JOIN warehouse ON warehouse.id = warehouseProduct.warehouse_id 
-                WHERE warehouse.warehouse_name='{warehouse_name}' AND {p}
-                """
-        with con:
-            return con.execute(query).fetchall()
 
     def addupdate_query(self, field, value, table_name, id):
         query = f"UPDATE {table_name} SET {field} = {value} WHERE id = {id}"
         self.queries_list.append(query)
 
-    def get_staff(self):
-        s="SELECT * FROM staff"
-        with con:
-            return con.execute(s).fetchall()
 
     def get_staff_for_cmb(self):
         first_name="SELECT DISTINCT first_name FROM staff"
@@ -399,11 +715,6 @@ class MethosdBD:
         except Exception as e:
             print(e)
             return None
-
-    def get_staff(self):
-        s = "SELECT * FROM staff"
-        with con:
-            return con.execute(s).fetchall()
 
     def get_staff_for_cmb(self):
         first_name = "SELECT DISTINCT first_name FROM staff"
