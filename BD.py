@@ -1,5 +1,6 @@
 import sqlite3 as sl
 import time
+from datetime import datetime, timezone
 
 con = sl.connect('warehouseDB.db', check_same_thread=False)
 cur=con.cursor()
@@ -281,14 +282,17 @@ class MethosdBD:
         for i in range(len(param)):
             if param[key[i]]!=None:
                 if param[key[i]].text() != "":
-                    final_param[key[i]] = param[key[i]]
+                    if key[i] in ("delivery_date","expiration_date"):
+                        final_param[key[i]]=int(datetime.strptime(param[key[i]].text(),"%d.%m.%Y").replace(tzinfo=timezone.utc).timestamp())
+                    else:
+                        final_param[key[i]] = param[key[i]].text()
 
         key = list(final_param.keys())
         for i in range(len(final_param)):
             if i == len(final_param) - 1:
-                s += f"{key[i]}='{final_param[key[i]].text()}'"
+                s += f"{key[i]}='{final_param[key[i]]}'"
             else:
-                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+                s += f"{key[i]}='{final_param[key[i]]}' AND "
 
         with con:
             data = con.execute(s).fetchall()
@@ -326,14 +330,17 @@ class MethosdBD:
         for i in range(len(param)):
             if param[key[i]]!=None:
                 if param[key[i]].text() != "":
-                    final_param[key[i]] = param[key[i]]
+                    if key[i] in ("delivery_date", "expiration_date"):
+                        final_param[key[i]] = int(datetime.strptime(param[key[i]].text(), "%d.%m.%Y").replace(tzinfo=timezone.utc).timestamp())
+                    else:
+                        final_param[key[i]] = param[key[i]].text()
 
         key = list(final_param.keys())
         for i in range(len(final_param)):
             if i == len(final_param) - 1:
-                s += f"{key[i]}='{final_param[key[i]].text()}'"
+                s += f"{key[i]}='{final_param[key[i]]}'"
             else:
-                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+                s += f"{key[i]}='{final_param[key[i]]}' AND "
 
         with con:
             data = con.execute(s).fetchall()
@@ -424,14 +431,17 @@ class MethosdBD:
         for i in range(len(param)):
             if param[key[i]]!=None:
                 if param[key[i]].text() != "":
-                    final_param[key[i]] = param[key[i]]
-
+                    if key[i] =="delivery_date":
+                        print(param[key[i]].text())
+                        final_param[key[i]] = int(datetime.strptime(param[key[i]].text(), "%d.%m.%Y").replace(tzinfo=timezone.utc).timestamp())
+                    else:
+                        final_param[key[i]] = param[key[i]].text()
         key = list(final_param.keys())
         for i in range(len(final_param)):
             if i == len(final_param) - 1:
-                s += f"{key[i]}='{final_param[key[i]].text()}'"
+                s += f"{key[i]}='{final_param[key[i]]}'"
             else:
-                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+                s += f"{key[i]}='{final_param[key[i]]}' AND "
 
         with con:
             data = con.execute(s).fetchall()
@@ -466,14 +476,18 @@ class MethosdBD:
         for i in range(len(param)):
             if param[key[i]]!=None:
                 if param[key[i]].text() != "":
-                    final_param[key[i]] = param[key[i]]
+                    if key[i] =="delivery_date":
+                        final_param[key[i]] = int(datetime.strptime(param[key[i]].text(), "%d.%m.%Y").replace(
+                            tzinfo=timezone.utc).timestamp())
+                    else:
+                        final_param[key[i]] = param[key[i]].text()
 
         key = list(final_param.keys())
         for i in range(len(final_param)):
             if i == len(final_param) - 1:
-                s += f"{key[i]}='{final_param[key[i]].text()}'"
+                s += f"{key[i]}='{final_param[key[i]]}'"
             else:
-                s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+                s += f"{key[i]}='{final_param[key[i]]}' AND "
 
         with con:
             data = con.execute(s).fetchall()
@@ -566,22 +580,25 @@ class MethosdBD:
 
             if param[key[i]] != None:
                 if param[key[i]].text() != "":
-                    final_param[key[i]] = param[key[i]]
-
+                    if key[i] == "birthday":
+                        final_param[key[i]] = int(datetime.strptime(param[key[i]].text(), "%d.%m.%Y").replace(
+                            tzinfo=timezone.utc).timestamp())
+                    else:
+                        final_param[key[i]] = param[key[i]].text()
         key = list(final_param.keys())
 
         for i in range(len(final_param)):
             if i == len(final_param) - 1:
                 if key[i]=='full_name':
 
-                    s+=f"{key[i]} LIKE '%{final_param[key[i]].text()}%'"
+                    s+=f"{key[i]} LIKE '%{final_param[key[i]]}%'"
                 else:
-                    s += f"{key[i]}='{final_param[key[i]].text()}'"
+                    s += f"{key[i]}='{final_param[key[i]]}'"
             else:
                 if key[i]=="fool_name":
-                    s+=f"{key[i]} LIKE '%{final_param[key[i]].text()}%' AND "
+                    s+=f"{key[i]} LIKE '%{final_param[key[i]]}%' AND "
                 else:
-                    s += f"{key[i]}='{final_param[key[i]].text()}' AND "
+                    s += f"{key[i]}='{final_param[key[i]]}' AND "
         with con:
             data = con.execute(s).fetchall()
             for i in range(len(data)):
