@@ -160,7 +160,6 @@ class MethosdBD:
                 s += f"{key[i]} = '{param[key[i]]}'"
             else:
                 s += f"{key[i]} = '{param[key[i]]}' AND "
-            print(s)
         with con:
             con.execute(s)
 
@@ -506,12 +505,17 @@ class MethosdBD:
     def get_warehouses_info(self):
         """
         Получение информаци о складах
-        :return: список кортежей
+        :return: список списков
         """
         s="SELECT * FROM warehouse"
         with con:
-            data=con.execute(s)
-            return data.fetchall()
+            data=con.execute(s).fetchall()
+
+            for i in range(len(data)):
+                data[i]=list(data[i])
+
+                data[i][0]=f"№{data[i][0]}"
+            return data
 
 
     def search_warehouse(self,**param:dict):
@@ -656,6 +660,47 @@ class MethosdBD:
             data = con.execute(s).fetchall()
             return data
 
+    def get_product_names(self):
+        """
+        Метод получения названий товаров
+        :return: списо названий
+        """
+        s="SELECT product_name FROM products ORDER BY product_name"
+        with con:
+            data = con.execute(s)
+            data = data.fetchall()
+            data1 = []
+            for i in data:
+                data1.append(i[0])
+            return data1
+
+    def get_delivery_contents(self,id):
+        s=f"SELECT product_name,quantity,expiration_date FROM delivery_contents JOIN products ON delivery_contents.products_id=products.id WHERE delivery_contents.deliveries_id={id}"
+        print(s)
+        with con:
+            data=con.execute(s).fetchall()
+
+        for i in range(len(data)):
+            data[i] = list(data[i])
+
+            unix_delivery_date = float(data[i][2])
+            unix_delivery_date = time.gmtime(unix_delivery_date)
+            data[i][2] = time.strftime("%m.%d.%Y", unix_delivery_date)
+
+        return data
+
+    def get_orders_content(self, order_number):
+        order_content_query = ("SELECT orderDetail.quantity, products.product_name, products.price FROM orderDetail "
+                               "JOIN products ON orderDetail.products_id = products.id "
+                               "WHERE orderDetail.order_number = ?")
+
+        with con:
+            cursor = con.cursor()
+            cursor.execute(order_content_query, (order_number,))
+            result = cursor.fetchall()
+            cursor.close()
+
+            return result
     def get_product_cart(self,product_id:int):
         """
         Получение данных товара для карты товара
